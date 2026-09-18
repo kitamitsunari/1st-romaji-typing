@@ -1,4 +1,4 @@
-# (My) 1st Romaji Typing - 設計要件・仕様書
+# (My) 1st Romaji Typing - 設計要件（Gemini 3.6-Flashへの依頼内容）
 
 ## 1. 開発のねらい・指導コンセプト
 
