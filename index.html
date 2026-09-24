@@ -2,11 +2,11 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ローマ字タイピング＆50音マップ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>はじめてのローマ字タイピング</title>
   <style>
     /* =========================================================
-       デザイン・スタイリング（後からCSS調整可能）
+       iPad（横置き 4:3）画面レイアウト最適化
        ========================================================= */
     :root {
       --bg-color: #f4f6f9;
@@ -16,107 +16,181 @@
       --key-bg: #e0e6ed;
       --key-active: #ff9800;
       
-      /* 50音マスの状態カラー */
-      --color-unopened: #e0e0e0; /* 未開放：グレー */
-      --color-hinted: #fff176;   /* アルファベット見て入力：薄い黄色 */
-      --color-mastered: #66bb6a; /* 自力で入力：緑色 */
-      --color-gold: #ffd700;     /* 連続自力成功：金色 */
+      --color-unopened: #e8ecef;
+      --color-hinted: #fff176;  
+      --color-mastered: #66bb6a;
+      --color-gold: #ffd700;    
     }
 
-    body {
-      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
       margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      padding: 0;
+      overflow: hidden;
+      background-color: var(--bg-color);
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--text-color);
       user-select: none;
     }
 
-    .container {
-      max-width: 800px;
-      width: 100%;
+    .app-container {
+      width: 100vw;
+      height: 100vh;
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 10px;
     }
 
-    /* 問題表示エリア */
+    .top-section {
+      display: flex;
+      gap: 10px;
+      height: 48%;
+    }
+
     .question-card {
+      flex: 1;
       background: var(--card-bg);
       border-radius: 12px;
-      padding: 24px;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 12px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .question-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
 
     .kanji-display {
-      font-size: 3rem;
+      font-size: 2.8rem;
       font-weight: bold;
       letter-spacing: 2px;
-      margin-bottom: 10px;
-      min-height: 4.5rem;
+      min-height: 3.2rem;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
     .kana-display {
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       color: #555;
-      height: 2.2rem;
-      transition: opacity 0.5s ease;
+      height: 2rem;
+      transition: opacity 0.3s ease;
     }
 
     .romaji-display {
       font-size: 2.2rem;
       font-weight: bold;
       letter-spacing: 4px;
-      height: 3rem;
-      margin-top: 10px;
-      transition: opacity 0.5s ease;
+      height: 2.6rem;
+      margin-top: 4px;
+      transition: opacity 0.3s ease;
     }
 
-    /* 文字表示の透過状態（淡色〜濃色） */
     .fade-hidden { opacity: 0; }
-    .fade-hint { opacity: 0.3; color: #ff9800; }
+    .fade-hint { opacity: 0.35; color: #ff9800; }
     .fade-visible { opacity: 1; }
 
     .char-correct { color: #4caf50; }
     .char-current { border-bottom: 4px solid var(--primary-color); }
-    .char-pending { color: #aaa; }
+    .char-pending { color: #bbb; }
 
-    /* ソフトキーボード */
-    .keyboard {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    .step-bar-container {
+      width: 100%;
+      border-top: 1px solid #eee;
+      padding-top: 6px;
+    }
+
+    .step-bar-header {
+      font-size: 0.75rem;
+      color: #666;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .step-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 3px;
+      width: 100%;
+    }
+
+    .step-btn {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 8px;
       align-items: center;
+      justify-content: center;
+      padding: 3px 0;
+      border-radius: 6px;
+      background: #f0f0f0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
     }
 
-    .kb-row {
-      display: flex;
-      gap: 6px;
+    .step-btn.locked {
+      color: #bbb;
+      background: #eee;
+      cursor: not-allowed;
     }
+
+    .step-btn.cleared {
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-weight: bold;
+    }
+
+    .step-btn.active {
+      background: #e3f2fd;
+      color: #1565c0;
+      border-color: #2196f3;
+      transform: scale(1.05);
+      font-weight: bold;
+    }
+
+    .step-num { font-size: 0.95rem; }
+    .step-btn.active .step-num { font-size: 1.15rem; }
+    .step-clear-dots { font-size: 0.55rem; line-height: 1; margin-top: 1px; }
+
+    .keyboard-card {
+      flex: 1.1;
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .kb-row { display: flex; gap: 6px; }
 
     .key {
-      width: 44px;
-      height: 48px;
+      width: 42px;
+      height: 46px;
       background: var(--key-bg);
       border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       box-shadow: 0 2px 0 #bbb;
       transition: background-color 0.1s, transform 0.1s;
+      cursor: pointer;
     }
 
     .key.active {
@@ -126,144 +200,198 @@
       box-shadow: none;
     }
 
-    /* 50音マップ（図鑑） */
     .gojuon-card {
+      height: 48%;
       background: var(--card-bg);
       border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 10px 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
     }
 
     .gojuon-header {
       font-weight: bold;
-      margin-bottom: 12px;
+      font-size: 0.88rem;
+      margin-bottom: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
     .gojuon-grid {
+      flex: 1;
       display: grid;
-      grid-template-columns: repeat(10, 1fr); /* 50音の縦列配置用 */
-      gap: 6px;
-      direction: rtl; /* 右から左へ（あ行→か行） */
+      grid-template-rows: repeat(5, 1fr);
+      grid-template-columns: repeat(10, 1fr);
+      gap: 5px;
+      direction: rtl;
     }
 
     .grid-cell {
       direction: ltr;
-      aspect-ratio: 1;
       border-radius: 6px;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 0.85rem;
+      font-size: 1.1rem;
+      font-weight: bold;
       background-color: var(--color-unopened);
-      transition: background-color 0.5s, transform 0.2s;
-      position: relative;
+      transition: background-color 0.4s, transform 0.2s;
     }
 
-    .grid-cell .kana-char { font-weight: bold; }
-    .grid-cell .romaji-char { font-size: 0.65rem; color: #555; }
-
-    /* ステータス別の背景色クラス */
     .status-0 { background-color: var(--color-unopened); color: #888; }
-    .status-1 { background-color: var(--color-hinted); }
+    .status-1 { background-color: var(--color-hinted); color: #333; }
     .status-2 { background-color: var(--color-mastered); color: #fff; }
-    .status-2 .romaji-char { color: #eee; }
     .status-3 { background-color: var(--color-gold); color: #333; font-weight: bold; }
 
-    /* 薄れ（時間経過）アニメーション用 */
-    .decayed { opacity: 0.5; }
+    .decayed { opacity: 0.45; }
 
-    .control-panel {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-    }
-
-    button {
-      padding: 8px 16px;
+    .btn-reset {
+      padding: 3px 8px;
       border: none;
-      border-radius: 6px;
-      background: var(--primary-color);
+      border-radius: 4px;
+      background: #9e9e9e;
       color: white;
-      font-weight: bold;
+      font-size: 0.75rem;
       cursor: pointer;
     }
-    button:hover { opacity: 0.9; }
+    .btn-reset:hover { opacity: 0.8; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <!-- 問題表示 -->
-  <div class="question-card">
-    <div id="kanjiDisplay" class="kanji-display">---</div>
-    <div id="kanaDisplay" class="kana-display fade-hidden">---</div>
-    <div id="romajiDisplay" class="romaji-display fade-hidden">---</div>
+<div class="app-container">
+  <div class="top-section">
+    <div class="question-card">
+      <div class="question-main">
+        <div id="kanjiDisplay" class="kanji-display">---</div>
+        <div id="kanaDisplay" class="kana-display fade-hidden">---</div>
+        <div id="romajiDisplay" class="romaji-display fade-hidden">---</div>
+      </div>
+
+      <div class="step-bar-container">
+        <div class="step-bar-header">
+          <span>ステージ選択（2回クリアで進む）</span>
+          <span id="stepProgressText">Step 1 (1/10問)</span>
+        </div>
+        <div class="step-bar" id="stepBar"></div>
+      </div>
+    </div>
+
+    <div class="keyboard-card" id="keyboard">
+      <div class="kb-row" id="row1"></div>
+      <div class="kb-row" id="row2"></div>
+      <div class="kb-row" id="row3"></div>
+    </div>
   </div>
 
-  <!-- ソフトキーボード -->
-  <div class="keyboard" id="keyboard">
-    <div class="kb-row" id="row1"></div>
-    <div class="kb-row" id="row2"></div>
-    <div class="kb-row" id="row3"></div>
-  </div>
-
-  <!-- 50音マップ -->
   <div class="gojuon-card">
     <div class="gojuon-header">
       <span>50音マップ（定着度）</span>
-      <span id="progressText" style="font-size: 0.9rem; color: #666;">マスター: 0 / 46</span>
+      <div>
+        <span id="progressText" style="margin-right: 12px; color: #666;">マスター: 0 / 46</span>
+        <button class="btn-reset" onclick="resetData()">リセット</button>
+      </div>
     </div>
     <div class="gojuon-grid" id="gojuonGrid"></div>
-  </div>
-
-  <div class="control-panel">
-    <button onclick="resetData()">データをリセット</button>
   </div>
 </div>
 
 <script>
 /* =========================================================
-   設定パラメータ（CONFIG）
-   後からの調整・修正が最も容易なようにここに集約しています。
+   設定パラメータ＆動的表記揺れ対応用語データ
    ========================================================= */
 const CONFIG = {
-  // ヒント表示のタイマー（ミリ秒）
-  KANA_HINT_DELAY: 2500,   // ひらがな表示までの待ち時間 (2.5秒)
-  ROMAJI_HINT_DELAY: 6000, // ローマ字表示までの待ち時間 (6.0秒)
-
-  // 時間経過で「ヒントを見て打ったマス」の色が薄くなる時間（ミリ秒）
-  DECAY_TIME: 10000, // 動作確認用に短め(10秒)に設定。本番は 86400000 (1日) 等に変更可能
-
-  // 連続自力成功で「ゴールド」に昇格する回数
-  GOLD_THRESHOLD: 2,
-
-  // 用語リスト（出題データ）
-  // ステージ別に難易度を管理可能
-  WORD_LIST: [
-    // a) 母音のみ
-    { word: "愛", kana: "あい", romaji: "AI" },
-    { word: "上", kana: "うえ", romaji: "UE" },
-    { word: "青い", kana: "あおい", romaji: "AOI" },
-    
-    // b) 母音＋子音1種類
-    { word: "柿", kana: "かき", romaji: "KAKI" },
-    { word: "菊", kana: "きく", romaji: "KIKU" },
-    { word: "寿司", kana: "すし", romaji: "SUSI" },
-    { word: "傘", kana: "かさ", romaji: "KASA" },
-    
-    // c) 2種類の子音
-    { word: "猫", kana: "ねこ", romaji: "NEKO" },
-    { word: "犬", kana: "いぬ", romaji: "INU" },
-    { word: "雨", kana: "あめ", romaji: "AME" }
-  ]
+  KANA_HINT_DELAY: 1200,   // 1.2秒
+  ROMAJI_HINT_DELAY: 5000, // 5.0秒
+  DECAY_TIME: 10000,       
+  GOLD_THRESHOLD: 2,       
+  CLEARS_PER_STEP: 2       
 };
 
-// 50音マップ構造の定義 (あ行〜わ行)
-const GOJUON_ORDER = [
+// patterns の先頭 [0] がデフォルトのヒント表記（標準）
+const STEPS_DATA = [
+  // Step 1: 母音のみ
+  [
+    { word: "愛", kana: "あい", patterns: ["AI"] },
+    { word: "上", kana: "うえ", patterns: ["UE"] },
+    { word: "青い", kana: "あおい", patterns: ["AOI"] },
+    { word: "家", kana: "いえ", patterns: ["IE"] },
+    { word: "甥", kana: "おい", patterns: ["OI"] },
+    { word: "会う", kana: "あう", patterns: ["AU"] },
+    { word: "言う", kana: "いう", patterns: ["IU"] },
+    { word: "いいえ", kana: "いいえ", patterns: ["IIE"] },
+    { word: "葵", kana: "あおい", patterns: ["AOI"] },
+    { word: "上", kana: "うえ", patterns: ["UE"] }
+  ],
+  // Step 2: K行
+  [
+    { word: "柿", kana: "かき", patterns: ["KAKI"] },
+    { word: "菊", kana: "きく", patterns: ["KIKU"] },
+    { word: "池", kana: "いけ", patterns: ["IKE"] },
+    { word: "苔", kana: "こけ", patterns: ["KOKE"] },
+    { word: "声", kana: "こえ", patterns: ["KOE"] },
+    { word: "貝", kana: "かい", patterns: ["KAI"] },
+    { word: "秋", kana: "あき", patterns: ["AKI"] },
+    { word: "木", kana: "き", patterns: ["KI"] },
+    { word: "置く", kana: "おく", patterns: ["OKU"] },
+    { word: "書く", kana: "かく", patterns: ["KAKU"] }
+  ],
+  // Step 3: S行 (SI / SHI の揺れ対応)
+  [
+    { word: "寿司", kana: "すし", patterns: ["SUSI", "SUSHI"] },
+    { word: "傘", kana: "かさ", patterns: ["KASA"] },
+    { word: "汗", kana: "あせ", patterns: ["ASE"] },
+    { word: "石", kana: "いし", patterns: ["ISI", "ISHI"] },
+    { word: "牛", kana: "うし", patterns: ["USI", "USHI"] },
+    { word: "咲く", kana: "さく", patterns: ["SAKU"] },
+    { word: "底", kana: "そこ", patterns: ["SOKO"] },
+    { word: "鹿", kana: "しか", patterns: ["SIKA", "SHIKA"] },
+    { word: "坂", kana: "さか", patterns: ["SAKA"] },
+    { word: "西瓜", kana: "すいか", patterns: ["SUIKA"] }
+  ],
+  // Step 4: T行 (TITI/CHICHI, TI/CHI, TU/TSU の揺れ対応)
+  [
+    { word: "父", kana: "ちち", patterns: ["TITI", "CHICHI", "TICHI", "CHITI"] },
+    { word: "竹", kana: "たけ", patterns: ["TAKE"] },
+    { word: "手", kana: "て", patterns: ["TE"] },
+    { word: "糸", kana: "いと", patterns: ["ITO"] },
+    { word: "音", kana: "おと", patterns: ["OTO"] },
+    { word: "立つ", kana: "たつ", patterns: ["TATU", "TATSU"] },
+    { word: "地下", kana: "ちか", patterns: ["TIKA", "CHIKA"] },
+    { word: "机", kana: "つくえ", patterns: ["TUKUE", "TSUKUE"] },
+    { word: "歌", kana: "うた", patterns: ["UTA"] },
+    { word: "月", kana: "つき", patterns: ["TUKI", "TSUKI"] }
+  ],
+  // Step 5: N行 / H行 (HU/FU の揺れ対応)
+  [
+    { word: "猫", kana: "ねこ", patterns: ["NEKO"] },
+    { word: "犬", kana: "いぬ", patterns: ["INU"] },
+    { word: "何", kana: "なに", patterns: ["NANI"] },
+    { word: "国", kana: "くに", patterns: ["KUNI"] },
+    { word: "布", kana: "ぬの", patterns: ["NUNO"] },
+    { word: "舟", kana: "ふね", patterns: ["HUNE", "FUNE"] },
+    { word: "金", kana: "かね", patterns: ["KANE"] },
+    { word: "蟹", kana: "かに", patterns: ["KANI"] },
+    { word: "服", kana: "ふく", patterns: ["HUKU", "FUKU"] },
+    { word: "きのこ", kana: "きのこ", patterns: ["KINOKO"] }
+  ],
+  // Step 6〜10 (仮データ)
+  [
+    { word: "雨", kana: "あめ", patterns: ["AME"] }, { word: "海", kana: "うみ", patterns: ["UMI"] },
+    { word: "桃", kana: "もも", patterns: ["MOMO"] }, { word: "空", kana: "そら", patterns: ["SORA"] },
+    { word: "森", kana: "もり", patterns: ["MORI"] }, { word: "猿", kana: "さる", patterns: ["SARU"] },
+    { word: "星", kana: "ほし", patterns: ["HOSI", "HOSHI"] }, { word: "花", kana: "はな", patterns: ["HANA"] },
+    { word: "耳", kana: "みみ", patterns: ["MIMI"] }, { word: "虫", kana: "むし", patterns: ["MUSI", "MUSHI"] }
+  ],
+  [ { word: "栗", kana: "くり", patterns: ["KURI"] }, { word: "車", kana: "くるま", patterns: ["KURUMA"] }, { word: "桜", kana: "さくら", patterns: ["SAKURA"] }, { word: "城", kana: "しろ", patterns: ["SIRO", "SHIRO"] }, { word: "赤", kana: "あか", patterns: ["AKA"] }, { word: "黒", kana: "くろ", patterns: ["KURO"] }, { word: "白", kana: "しろ", patterns: ["SIRO", "SHIRO"] }, { word: "青", kana: "あお", patterns: ["AO"] }, { word: "黄色", kana: "きいろ", patterns: ["KIIRO"] }, { word: "緑", kana: "みどり", patterns: ["MIDORI"] } ],
+  [ { word: "鳥", kana: "とり", patterns: ["TORI"] }, { word: "魚", kana: "さかな", patterns: ["SAKANA"] }, { word: "馬", kana: "うま", patterns: ["UMA"] }, { word: "牛", kana: "うし", patterns: ["USI", "USHI"] }, { word: "狸", kana: "たぬき", patterns: ["TANUKI"] }, { word: "リス", kana: "りす", patterns: ["RISU"] }, { word: "カメ", kana: "かめ", patterns: ["KAME"] }, { word: "タコ", kana: "たこ", patterns: ["TAKO"] }, { word: "セミ", kana: "せみ", patterns: ["SEMI"] }, { word: "ハチ", kana: "はち", patterns: ["HATI", "HACHI"] } ],
+  [ { word: "山", kana: "やま", patterns: ["YAMA"] }, { word: "川", kana: "かわ", patterns: ["KAWA"] }, { word: "池", kana: "いけ", patterns: ["IKE"] }, { word: "海", kana: "うみ", patterns: ["UMI"] }, { word: "空", kana: "そら", patterns: ["SORA"] }, { word: "雲", kana: "くも", patterns: ["KUMO"] }, { word: "雨", kana: "あめ", patterns: ["AME"] }, { word: "雪", kana: "ゆき", patterns: ["YUKI"] }, { word: "風", kana: "かぜ", patterns: ["KAZE"] }, { word: "虹", kana: "にじ", patterns: ["NIJI", "NIZI"] } ],
+  [ { word: "朝", kana: "あさ", patterns: ["ASA"] }, { word: "昼", kana: "ひる", patterns: ["HIRU"] }, { word: "夜", kana: "よる", patterns: ["YORU"] }, { word: "春", kana: "はる", patterns: ["HARU"] }, { word: "夏", kana: "なつ", patterns: ["NATU", "NATSU"] }, { word: "秋", kana: "あき", patterns: ["AKI"] }, { word: "冬", kana: "ふゆ", patterns: ["HUYU", "FUYU"] }, { word: "今日", kana: "きょう", patterns: ["KYOU"] }, { word: "明日", kana: "あした", patterns: ["ASITA", "ASHITA"] }, { word: "夢", kana: "ゆめ", patterns: ["YUME"] } ]
+];
+
+const GOJUON_COLUMNS = [
   ["あ","い","う","え","お"],
   ["か","き","く","け","こ"],
   ["さ","し","す","せ","そ"],
@@ -273,52 +401,49 @@ const GOJUON_ORDER = [
   ["ま","み","む","め","も"],
   ["や","","ゆ","","よ"],
   ["ら","り","る","れ","ろ"],
-  ["わ","","","","を"],
-  ["ん","","","",""]
+  ["わ","","を","","ん"]
 ];
 
 /* =========================================================
-   アプリケーション状態管理
+   アプリケーション状態＆初期化
    ========================================================= */
-let currentWordIndex = 0;
-let typedIndex = 0;
-let currentWord = {};
-let currentState = {
-  kanaVisible: false,
-  romajiVisible: false
-};
+let currentStep = 0;
+let stepWordList = [];
+let currentWordInStepIndex = 0;
 
+let currentTypedString = "";   // ユーザーが打ち込んだ文字例（例: "C"）
+let activeRomajiPattern = ""; // 現在選択されている最適なパターン（例: "CHICHI"）
+
+let currentWord = {};
+let currentState = { kanaVisible: false, romajiVisible: false };
 let kanaTimer = null;
 let romajiTimer = null;
 
-// ユーザーの各50音文字の習熟度データ
-// status: 0(未), 1(ヒントありクリア), 2(自力クリア), 3(ゴールド)
-// lastUpdated: タイムスタンプ
-let userProgress = JSON.parse(localStorage.getItem('gojuon_progress')) || {};
+let userProgress = { gojuon: {}, stepClears: [0,0,0,0,0,0,0,0,0,0] };
+try {
+  const saved = localStorage.getItem('gojuon_progress');
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    if (parsed.gojuon) userProgress.gojuon = parsed.gojuon;
+    if (parsed.stepClears && Array.isArray(parsed.stepClears)) userProgress.stepClears = parsed.stepClears;
+  }
+} catch(e) {}
 
-/* =========================================================
-   初期化処理
-   ========================================================= */
 function init() {
   createKeyboard();
   renderGojuonGrid();
-  loadNextQuestion();
+  startStep(0);
 
-  // キーボード物理入力のイベントリスナー
   window.addEventListener('keydown', handleKeyDown);
-
-  // 定期的にマスの色減衰（時間の経過）をチェック
   setInterval(checkDecayStatus, 2000);
 }
 
-// QWERTYキーボード生成
 function createKeyboard() {
   const rows = [
     ["Q","W","E","R","T","Y","U","I","O","P"],
     ["A","S","D","F","G","H","J","K","L"],
     ["Z","X","C","V","B","N","M"]
   ];
-  
   rows.forEach((row, i) => {
     const rowEl = document.getElementById(`row${i+1}`);
     rowEl.innerHTML = '';
@@ -327,61 +452,86 @@ function createKeyboard() {
       keyEl.className = 'key';
       keyEl.id = `key-${key}`;
       keyEl.innerText = key;
+      
+      // クリック/タップのハンドラを追加
+      keyEl.onclick = () => {
+        handleCharInput(key);
+      };
+
       rowEl.appendChild(keyEl);
     });
   });
 }
 
-// 50音マップの描画
-function renderGojuonGrid() {
-  const gridEl = document.getElementById('gojuonGrid');
-  gridEl.innerHTML = '';
-
-  let totalMastered = 0;
-  let totalCount = 0;
-
-  GOJUON_ORDER.forEach(row => {
-    row.forEach(char => {
-      const cell = document.createElement('div');
-      cell.className = 'grid-cell';
-
-      if (char !== "") {
-        totalCount++;
-        const data = userProgress[char] || { status: 0, count: 0, lastUpdated: 0 };
-        
-        cell.classList.add(`status-${data.status}`);
-        if (data.status >= 2) totalMastered++;
-
-        // 時間経過で薄くなっているか判定
-        if (data.status === 1 && (Date.now() - data.lastUpdated > CONFIG.DECAY_TIME)) {
-          cell.classList.add('decayed');
-        }
-
-        cell.innerHTML = `
-          <span class="kana-char">${char}</span>
-        `;
-      } else {
-        cell.style.visibility = 'hidden';
-      }
-      gridEl.appendChild(cell);
-    });
-  });
-
-  document.getElementById('progressText').innerText = `マスター: ${totalMastered} / ${totalCount}`;
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
 }
 
-/* =========================================================
-   出題＆ヒントタイマー管理
-   ========================================================= */
-function loadNextQuestion() {
+function startStep(stepIdx) {
+  if (stepIdx > 0 && userProgress.stepClears[stepIdx - 1] < CONFIG.CLEARS_PER_STEP) {
+    return;
+  }
+  currentStep = stepIdx;
+  stepWordList = shuffleArray(STEPS_DATA[currentStep]);
+  currentWordInStepIndex = 0;
+
+  renderStepBar();
+  loadQuestion();
+}
+
+function renderStepBar() {
+  const stepBarEl = document.getElementById('stepBar');
+  stepBarEl.innerHTML = '';
+
+  for (let i = 0; i < 10; i++) {
+    const clears = userProgress.stepClears[i] || 0;
+    const isUnlocked = (i === 0) || ((userProgress.stepClears[i - 1] || 0) >= CONFIG.CLEARS_PER_STEP);
+    const isCleared = clears >= CONFIG.CLEARS_PER_STEP;
+    const isActive = (i === currentStep);
+
+    const btn = document.createElement('div');
+    btn.className = 'step-btn';
+
+    if (!isUnlocked) {
+      btn.classList.add('locked');
+      btn.innerHTML = `<span class="step-num">🔒</span>`;
+    } else {
+      if (isCleared) btn.classList.add('cleared');
+      if (isActive) btn.classList.add('active');
+
+      let dots = '';
+      for (let c = 0; c < CONFIG.CLEARS_PER_STEP; c++) {
+        dots += (c < clears) ? '●' : '○';
+      }
+
+      btn.innerHTML = `
+        <span class="step-num">${i + 1}</span>
+        <span class="step-clear-dots">${dots}</span>
+      `;
+      btn.onclick = () => startStep(i);
+    }
+    stepBarEl.appendChild(btn);
+  }
+
+  document.getElementById('stepProgressText').innerText = 
+    `Step ${currentStep + 1} (${currentWordInStepIndex + 1} / 10問目)`;
+}
+
+function loadQuestion() {
   clearTimeout(kanaTimer);
   clearTimeout(romajiTimer);
 
-  currentWord = CONFIG.WORD_LIST[currentWordIndex];
-  typedIndex = 0;
+  currentWord = stepWordList[currentWordInStepIndex];
+  currentTypedString = "";
+  activeRomajiPattern = currentWord.patterns[0]; // 初期ヒントはデフォルト（訓令式など）
+
   currentState = { kanaVisible: false, romajiVisible: false };
 
-  // 画面リセット
   document.getElementById('kanjiDisplay').innerText = currentWord.word;
   
   const kanaEl = document.getElementById('kanaDisplay');
@@ -389,8 +539,8 @@ function loadNextQuestion() {
   kanaEl.className = 'kana-display fade-hidden';
 
   updateRomajiDisplay();
+  renderStepBar();
 
-  // ヒントタイマー開始
   kanaTimer = setTimeout(() => {
     currentState.kanaVisible = true;
     kanaEl.className = 'kana-display fade-visible';
@@ -402,15 +552,16 @@ function loadNextQuestion() {
   }, CONFIG.ROMAJI_HINT_DELAY);
 }
 
+// 画面表示更新（入力に合わせてヒントを動的切り替え）
 function updateRomajiDisplay() {
   const romajiEl = document.getElementById('romajiDisplay');
   let html = '';
 
-  for (let i = 0; i < currentWord.romaji.length; i++) {
-    const char = currentWord.romaji[i];
-    if (i < typedIndex) {
+  for (let i = 0; i < activeRomajiPattern.length; i++) {
+    const char = activeRomajiPattern[i];
+    if (i < currentTypedString.length) {
       html += `<span class="char-correct">${char}</span>`;
-    } else if (i === typedIndex) {
+    } else if (i === currentTypedString.length) {
       html += `<span class="char-current">${char}</span>`;
     } else {
       html += `<span class="char-pending">${char}</span>`;
@@ -427,32 +578,37 @@ function updateRomajiDisplay() {
 }
 
 /* =========================================================
-   キー入力ハンドリング
+   入力＆動的パターン判定ロジック
    ========================================================= */
 function handleKeyDown(e) {
   const key = e.key.toUpperCase();
-  
-  // アルファベット以外のキーは無視
   if (!/^[A-Z]$/.test(key)) return;
+  handleCharInput(key);
+}
 
-  // ソフトキーボード反転演出
+function handleCharInput(key) {
   highlightKey(key);
 
-  const targetKey = currentWord.romaji[typedIndex];
+  const testString = currentTypedString + key;
 
-  if (key === targetKey) {
-    // 正解入力
-    typedIndex++;
+  // patterns の中で、今回の打鍵（testString）から始まるものが存在するか検索
+  const matchedPatterns = currentWord.patterns.filter(p => p.startsWith(testString));
+
+  if (matchedPatterns.length > 0) {
+    // 正解入力！
+    currentTypedString = testString;
+    // 一番最初にヒットしたパターンに画面のヒント文字を切り替える（化けさせる）
+    activeRomajiPattern = matchedPatterns[0];
+
     updateRomajiDisplay();
 
-    // 単語1つクリア判定
-    if (typedIndex >= currentWord.romaji.length) {
+    // 完全一致でクリア判定
+    if (currentTypedString === activeRomajiPattern) {
       onWordCleared();
     }
   }
 }
 
-// キー視覚フィードバック
 function highlightKey(key) {
   const keyEl = document.getElementById(`key-${key}`);
   if (keyEl) {
@@ -461,59 +617,106 @@ function highlightKey(key) {
   }
 }
 
-/* =========================================================
-   クリア判定と50音ステータス更新
-   ========================================================= */
 function onWordCleared() {
-  // 使用されたひらがな一文字ずつに対して習熟度を更新
   const chars = currentWord.kana.split('');
-
   chars.forEach(char => {
-    if (!userProgress[char]) {
-      userProgress[char] = { status: 0, count: 0, lastUpdated: Date.now() };
+    if (!userProgress.gojuon[char]) {
+      userProgress.gojuon[char] = { status: 0, count: 0, lastUpdated: Date.now() };
     }
 
-    let p = userProgress[char];
+    let p = userProgress.gojuon[char];
     p.lastUpdated = Date.now();
 
     if (currentState.romajiVisible) {
-      // アルファベットヒントを見て打った場合 -> ステータス1（黄色）
       p.status = Math.max(p.status, 1);
-      p.count = 0; // 連続カウントリセット
+      p.count = 0;
     } else {
-      // 自力（ひらがな表示前／表示後）で打った場合
       p.count += 1;
       if (p.count >= CONFIG.GOLD_THRESHOLD) {
-        p.status = 3; // ゴールド
+        p.status = 3;
       } else {
-        p.status = Math.max(p.status, 2); // 緑色
+        p.status = Math.max(p.status, 2);
       }
     }
   });
 
-  // データ保存＆画面更新
-  localStorage.setItem('gojuon_progress', JSON.stringify(userProgress));
+  saveProgress();
   renderGojuonGrid();
 
-  // 次の問題へ
-  currentWordIndex = (currentWordIndex + 1) % CONFIG.WORD_LIST.length;
-  setTimeout(loadNextQuestion, 400);
+  currentWordInStepIndex++;
+
+  if (currentWordInStepIndex >= 10) {
+    userProgress.stepClears[currentStep] = (userProgress.stepClears[currentStep] || 0) + 1;
+    saveProgress();
+
+    setTimeout(() => {
+      alert(`🎉 Step ${currentStep + 1} クリア！ (${userProgress.stepClears[currentStep]} / ${CONFIG.CLEARS_PER_STEP} 回クリア)`);
+      
+      if (userProgress.stepClears[currentStep] >= CONFIG.CLEARS_PER_STEP && currentStep < 9) {
+        startStep(currentStep + 1);
+      } else {
+        startStep(currentStep);
+      }
+    }, 200);
+  } else {
+    setTimeout(loadQuestion, 300);
+  }
 }
 
-// 定期的な時間経過チェック（マスの色が薄くなる処理）
+function renderGojuonGrid() {
+  const gridEl = document.getElementById('gojuonGrid');
+  gridEl.innerHTML = '';
+
+  let totalMastered = 0;
+  let totalCount = 0;
+
+  for (let row = 0; row < 5; row++) {
+    for (let col = 0; col < GOJUON_COLUMNS.length; col++) {
+      const char = GOJUON_COLUMNS[col][row];
+      const cell = document.createElement('div');
+      cell.className = 'grid-cell';
+
+      if (char !== "") {
+        totalCount++;
+        const data = userProgress.gojuon[char] || { status: 0, count: 0, lastUpdated: 0 };
+        
+        cell.classList.add(`status-${data.status}`);
+        if (data.status >= 2) totalMastered++;
+
+        if (data.status === 1 && (Date.now() - data.lastUpdated > CONFIG.DECAY_TIME)) {
+          cell.classList.add('decayed');
+        }
+
+        cell.innerHTML = `<span>${char}</span>`;
+      } else {
+        cell.style.visibility = 'hidden';
+      }
+      gridEl.appendChild(cell);
+    }
+  }
+
+  document.getElementById('progressText').innerText = `マスター: ${totalMastered} / ${totalCount}`;
+}
+
 function checkDecayStatus() {
   renderGojuonGrid();
 }
 
+function saveProgress() {
+  try {
+    localStorage.setItem('gojuon_progress', JSON.stringify(userProgress));
+  } catch(e) {}
+}
+
 function resetData() {
-  if (confirm("これまでの学習データをリセットしますか？")) {
+  if (confirm("これまでの学習データをすべてリセットしますか？")) {
     localStorage.removeItem('gojuon_progress');
-    userProgress = {};
+    userProgress = { gojuon: {}, stepClears: [0,0,0,0,0,0,0,0,0,0] };
     renderGojuonGrid();
+    startStep(0);
   }
 }
 
-// アプリ起動
 window.onload = init;
 </script>
 </body>
