@@ -3,23 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>はじめてのローマ字タイピング</title>
+  <title>タイピング学習システム：クイズグランプリ</title>
   <style>
     /* =========================================================
-       iPad（横置き 4:3）画面レイアウト最適化
+       iPad（第10世代 横置き 10.9インチ / 4:3）画面最適化 & テーマカラー定義
        ========================================================= */
     :root {
-      --bg-color: #f4f6f9;
       --card-bg: #ffffff;
-      --text-color: #333333;
-      --primary-color: #4a90e2;
-      --key-bg: #e0e6ed;
-      --key-active: #ff9800;
+      --text-color: #2c3e50;
+      --key-bg: #e2e8f0;
       
       --color-unopened: #e8ecef;
       --color-hinted: #fff176;  
       --color-mastered: #66bb6a;
       --color-gold: #ffd700;    
+    }
+
+    /* 🎵 1. 母音ウォームアップ モード用カラー（淡いパステルオレンジ系） */
+    body[data-mode="warmup"] {
+      --bg-color: #fdf6ed;
+      --primary-color: #e67e22;
+      --tab-bg: #f5e6d3;
+      --key-active: #f39c12;
+      --card-border: #f3d9b1;
+    }
+
+    /* 🚀 2. ローマ字練習：基礎 モード用カラー（淡いパステルブルー系） */
+    body[data-mode="basic"] {
+      --bg-color: #edf4fa;
+      --primary-color: #3b82f6;
+      --tab-bg: #dbeafe;
+      --key-active: #2563eb;
+      --card-border: #bfdbfe;
+    }
+
+    /* 🏆 3. クイズグランプリ：応用 モード用カラー（知的なディープパープル系） */
+    body[data-mode="applied"] {
+      --bg-color: #f3e8ff;
+      --primary-color: #8b5cf6;
+      --tab-bg: #ddd6fe;
+      --key-active: #7c3aed;
+      --card-border: #c4b5fd;
     }
 
     * { box-sizing: border-box; }
@@ -34,34 +58,137 @@
       font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
       color: var(--text-color);
       user-select: none;
+      transition: background-color 0.4s ease;
     }
 
     .app-container {
       width: 100vw;
       height: 100vh;
-      padding: 12px;
+      padding: 10px 14px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
 
+    /* 上部 ステージ切替タブ */
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      height: 38px;
+      flex-shrink: 0;
+    }
+
+    .tab-btn {
+      flex: 1;
+      border: none;
+      background: var(--tab-bg);
+      color: #64748b;
+      font-size: 0.95rem;
+      font-weight: bold;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .tab-btn.active {
+      background: var(--card-bg);
+      color: var(--primary-color);
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+    }
+
+    /* 2列グリッド（上段） */
     .top-section {
       display: flex;
       gap: 10px;
-      height: 48%;
+      flex: 1;
+      min-height: 0;
     }
 
+    /* 出題カード */
     .question-card {
       flex: 1;
       background: var(--card-bg);
-      border-radius: 12px;
+      border-radius: 0 12px 12px 12px;
       padding: 12px 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      border: 1px solid var(--card-border);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      position: relative;
+      transition: border-color 0.4s ease;
     }
 
+    .mode-panel {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
+    }
+
+    .mode-panel.active {
+      display: flex;
+    }
+
+    /* --- ウォームアップ専用スタイル --- */
+    .warmup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f1f5f9;
+      padding: 3px 10px;
+      border-radius: 14px;
+      font-size: 0.8rem;
+    }
+
+    .speed-btn {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .warmup-display {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .warmup-char {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #cbd5e1;
+      padding: 2px 8px;
+      border-bottom: 4px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .warmup-char.active-target {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+      transform: translateY(-14px) scale(1.25);
+      text-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* --- 基礎・応用練習スタイル --- */
     .question-main {
       flex: 1;
       display: flex;
@@ -71,48 +198,50 @@
     }
 
     .kanji-display {
-      font-size: 2.8rem;
+      font-size: 2.5rem;
       font-weight: bold;
       letter-spacing: 2px;
-      min-height: 3.2rem;
+      min-height: 3rem;
       display: flex;
       align-items: center;
       justify-content: center;
+      text-align: center;
     }
 
     .kana-display {
-      font-size: 1.6rem;
-      color: #555;
-      height: 2rem;
+      font-size: 1.4rem;
+      color: #64748b;
+      height: 1.8rem;
       transition: opacity 0.3s ease;
     }
 
     .romaji-display {
-      font-size: 2.2rem;
+      font-size: 2rem;
       font-weight: bold;
-      letter-spacing: 4px;
-      height: 2.6rem;
-      margin-top: 4px;
+      letter-spacing: 3px;
+      height: 2.4rem;
+      margin-top: 2px;
       transition: opacity 0.3s ease;
     }
 
     .fade-hidden { opacity: 0; }
-    .fade-hint { opacity: 0.35; color: #ff9800; }
+    .fade-hint { opacity: 0.35; color: #f59e0b; }
     .fade-visible { opacity: 1; }
 
-    .char-correct { color: #4caf50; }
+    .char-correct { color: #10b981; }
     .char-current { border-bottom: 4px solid var(--primary-color); }
-    .char-pending { color: #bbb; }
+    .char-pending { color: #cbd5e1; }
 
+    /* ステップバー（共通） */
     .step-bar-container {
       width: 100%;
-      border-top: 1px solid #eee;
+      border-top: 1px solid #e2e8f0;
       padding-top: 6px;
     }
 
     .step-bar-header {
       font-size: 0.75rem;
-      color: #666;
+      color: #64748b;
       margin-bottom: 4px;
       display: flex;
       justify-content: space-between;
@@ -121,99 +250,105 @@
     .step-bar {
       display: flex;
       justify-content: space-between;
-      gap: 3px;
+      gap: 4px;
       width: 100%;
     }
 
     .step-btn {
       flex: 1;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 3px 0;
+      padding: 4px 0;
       border-radius: 6px;
-      background: #f0f0f0;
+      background: #f1f5f9;
       cursor: pointer;
       transition: all 0.2s ease;
       border: 2px solid transparent;
-    }
-
-    .step-btn.locked {
-      color: #bbb;
-      background: #eee;
-      cursor: not-allowed;
-    }
-
-    .step-btn.cleared {
-      background: #e8f5e9;
-      color: #2e7d32;
       font-weight: bold;
+      color: #64748b;
+      font-size: 0.85rem;
     }
 
-    .step-btn.active {
-      background: #e3f2fd;
-      color: #1565c0;
-      border-color: #2196f3;
-      transform: scale(1.05);
-      font-weight: bold;
+    .step-btn.cleared { background: #dcfce7; color: #15803d; }
+    .step-btn.active { 
+      background: #ffffff; 
+      color: var(--primary-color); 
+      border-color: var(--primary-color); 
+      transform: scale(1.04); 
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     }
 
-    .step-num { font-size: 0.95rem; }
-    .step-btn.active .step-num { font-size: 1.15rem; }
-    .step-clear-dots { font-size: 0.55rem; line-height: 1; margin-top: 1px; }
-
+    /* --- 上段右：共通キーボードカード (4段拡張対応) --- */
     .keyboard-card {
-      flex: 1.1;
+      flex: 1.15;
       background: var(--card-bg);
       border-radius: 12px;
-      padding: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      border: 1px solid var(--card-border);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      gap: 8px;
+      gap: 5px;
+      transition: border-color 0.4s ease;
     }
 
-    .kb-row { display: flex; gap: 6px; }
+    .kb-row { display: flex; gap: 4px; }
 
     .key {
-      width: 42px;
-      height: 46px;
+      min-width: 38px;
+      height: 42px;
+      padding: 0 4px;
       background: var(--key-bg);
       border-radius: 6px;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      font-size: 1.15rem;
-      box-shadow: 0 2px 0 #bbb;
+      font-size: 1rem;
+      box-shadow: 0 2px 0 #cbd5e1;
       transition: background-color 0.1s, transform 0.1s;
       cursor: pointer;
+      position: relative;
     }
 
+    .key.key-wide { min-width: 62px; font-size: 0.8rem; }
+
     .key.active {
-      background: var(--key-active);
-      color: #fff;
+      background: var(--key-active) !important;
+      color: #fff !important;
       transform: translateY(2px);
       box-shadow: none;
     }
 
-    .gojuon-card {
-      height: 48%;
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 10px 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      display: flex;
-      flex-direction: column;
+    .key-sub {
+      font-size: 0.55rem;
+      opacity: 0.8;
+      margin-top: -2px;
     }
 
+    /* --- 下段：共通エリア（モードで切替） --- */
+    .bottom-card {
+      height: 46%;
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 8px 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      border: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: border-color 0.4s ease;
+    }
+
+    /* 基礎：50音マップ（最上段「あかさたな…」、左縦列「あいうえお」10列×5行） */
     .gojuon-header {
       font-weight: bold;
-      font-size: 0.88rem;
-      margin-bottom: 6px;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -224,322 +359,703 @@
       display: grid;
       grid-template-rows: repeat(5, 1fr);
       grid-template-columns: repeat(10, 1fr);
-      gap: 5px;
-      direction: rtl;
+      gap: 4px;
+      direction: ltr;
     }
 
     .grid-cell {
-      direction: ltr;
       border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: bold;
       background-color: var(--color-unopened);
       transition: background-color 0.4s, transform 0.2s;
     }
 
-    .status-0 { background-color: var(--color-unopened); color: #888; }
-    .status-1 { background-color: var(--color-hinted); color: #333; }
+    .status-0 { background-color: var(--color-unopened); color: #94a3b8; }
+    .status-1 { background-color: var(--color-hinted); color: #334155; }
     .status-2 { background-color: var(--color-mastered); color: #fff; }
-    .status-3 { background-color: var(--color-gold); color: #333; font-weight: bold; }
+    .status-3 { background-color: var(--color-gold); color: #334155; font-weight: bold; }
 
-    .decayed { opacity: 0.45; }
+    /* 応用：クイズグランプリ選択ボード（3×3マトリックス） */
+    .quiz-board-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+    }
+
+ .quiz-matrix {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: 0.8fr repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .matrix-header-cell {
+      background: #f1f5f9;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.8rem;
+      color: #475569;
+    }
+
+    .quiz-panel-btn {
+      background: #ffffff;
+      border: 2px solid var(--primary-color);
+      border-radius: 8px;
+      color: var(--primary-color);
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+
+    .quiz-panel-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .quiz-panel-btn.active {
+      background: var(--primary-color);
+      color: #ffffff;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .quiz-panel-btn.cleared {
+      background: #fef08a;
+      border-color: #f59e0b;
+      color: #854d0e;
+    }
+
+    .quiz-panel-btn.cleared::after {
+      content: "CLEAR!";
+      font-size: 0.6rem;
+      margin-top: -2px;
+    }
 
     .btn-reset {
       padding: 3px 8px;
       border: none;
       border-radius: 4px;
-      background: #9e9e9e;
+      background: #94a3b8;
       color: white;
       font-size: 0.75rem;
       cursor: pointer;
     }
-    .btn-reset:hover { opacity: 0.8; }
+    .btn-reset:hover { opacity: 0.85; background: #ef4444; }
+
+    /* モーダルダイアログ */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(15, 23, 42, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-card {
+      background: white;
+      border-radius: 20px;
+      padding: 24px 32px;
+      text-align: center;
+      max-width: 480px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-card h2 { font-size: 1.8rem; color: #8b5cf6; margin-bottom: 12px; }
+    .modal-card p { font-size: 1.1rem; color: #475569; margin-bottom: 20px; line-height: 1.5; }
+    .modal-btn {
+      background: #8b5cf6;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
-<body>
+<body data-mode="warmup">
 
 <div class="app-container">
+  <!-- モード切替タブ -->
+  <div class="mode-tabs">
+    <button class="tab-btn active" id="tabWarmup" onclick="switchMode('warmup')">
+      🎵 1. 母音ウォームアップ
+    </button>
+    <button class="tab-btn" id="tabBasic" onclick="switchMode('basic')">
+      🚀 2. ローマ字練習：基礎
+    </button>
+    <button class="tab-btn" id="tabApplied" onclick="switchMode('applied')">
+      🏆 3. クイズグランプリ：応用
+    </button>
+  </div>
+
   <div class="top-section">
+    <!-- 上段左：出題カード（モード差し替え） -->
     <div class="question-card">
-      <div class="question-main">
-        <div id="kanjiDisplay" class="kanji-display">---</div>
-        <div id="kanaDisplay" class="kana-display fade-hidden">---</div>
-        <div id="romajiDisplay" class="romaji-display fade-hidden">---</div>
+      
+      <!-- 1. ウォームアップ出題パネル -->
+      <div class="mode-panel active" id="panelWarmup">
+        <div class="warmup-header">
+          <span style="font-weight:bold; font-size:0.95rem;" id="warmupStepTitle">Step 1: ういういういうい</span>
+          <div class="speed-control">
+            <span>BPM:</span>
+            <button class="speed-btn" onclick="changeBPM(-10)">-</button>
+            <strong id="bpmDisplay" style="color:var(--primary-color); min-width:28px; text-align:center;">60</strong>
+            <button class="speed-btn" onclick="changeBPM(10)">+</button>
+          </div>
+        </div>
+
+        <div class="warmup-display" id="warmupDisplay"></div>
+
+        <div class="step-bar-container">
+          <div class="step-bar-header">
+            <span>ウォームアップ ステップ選択</span>
+            <span id="warmupProgressText">1 / 5 ステップ</span>
+          </div>
+          <div class="step-bar" id="warmupStepBar"></div>
+        </div>
       </div>
 
-      <div class="step-bar-container">
-        <div class="step-bar-header">
-          <span>ステージ選択（2回クリアで進む）</span>
-          <span id="stepProgressText">Step 1 (1/10問)</span>
+      <!-- 2. 基礎練習出題パネル -->
+      <div class="mode-panel" id="panelBasic">
+        <div class="question-main">
+          <div id="basicKanjiDisplay" class="kanji-display">---</div>
+          <div id="basicKanaDisplay" class="kana-display fade-hidden">---</div>
+          <div id="basicRomajiDisplay" class="romaji-display fade-hidden">---</div>
         </div>
-        <div class="step-bar" id="stepBar"></div>
+
+        <div class="step-bar-container">
+          <div class="step-bar-header">
+            <span>ステップ選択（1周クリアで次ステップ解放）</span>
+            <span id="basicProgressText">Step 1 (1/5問)</span>
+          </div>
+          <div class="step-bar" id="basicStepBar"></div>
+        </div>
       </div>
+
+      <!-- 3. 応用クイズグランプリ出題パネル -->
+      <div class="mode-panel" id="panelApplied">
+        <div class="question-main">
+          <div style="font-size:0.8rem; color:#8b5cf6; font-weight:bold; margin-bottom:2px;" id="appliedPanelTag">選択中のパネル</div>
+          <div id="appliedKanjiDisplay" class="kanji-display">---</div>
+          <div id="appliedKanaDisplay" class="kana-display fade-hidden">---</div>
+          <div id="appliedRomajiDisplay" class="romaji-display fade-hidden">---</div>
+        </div>
+
+        <div class="step-bar-container">
+          <div class="step-bar-header">
+            <span>パネル設問進捗</span>
+            <span id="appliedProgressText">1 / 5 問目</span>
+          </div>
+          <div style="font-size:0.75rem; color:#64748b; text-align:center; font-weight:bold;" id="appliedSubText">パネルを選んで挑戦を開始しよう！</div>
+        </div>
+      </div>
+
     </div>
 
+    <!-- 上段右：共通 拡張4段 QWERTYキーボード -->
     <div class="keyboard-card" id="keyboard">
+      <div class="kb-row" id="row0"></div>
       <div class="kb-row" id="row1"></div>
       <div class="kb-row" id="row2"></div>
       <div class="kb-row" id="row3"></div>
     </div>
   </div>
 
-  <div class="gojuon-card">
-    <div class="gojuon-header">
-      <span>50音マップ（定着度）</span>
-      <div>
-        <span id="progressText" style="margin-right: 12px; color: #666;">マスター: 0 / 46</span>
-        <button class="btn-reset" onclick="resetData()">リセット</button>
+  <!-- 下段：共通エリア（モードで切替） -->
+  <div class="bottom-card" id="bottomCard">
+    <!-- 基礎用：50音マップ -->
+    <div id="bottomBasic" style="display:none; flex-direction:column; height:100%;">
+      <div class="gojuon-header">
+        <span>50音習得マップ</span>
+        <div>
+          <span id="progressText" style="margin-right: 12px; color: #64748b;">マスター: 0 / 45</span>
+          <button class="btn-reset" onclick="resetData()">リセット</button>
+        </div>
       </div>
+      <div class="gojuon-grid" id="gojuonGrid"></div>
     </div>
-    <div class="gojuon-grid" id="gojuonGrid"></div>
+
+    <!-- 応用用：クイズグランプリ選択盤 -->
+    <div id="bottomApplied" style="display:none; flex-direction:column; height:100%;">
+      <div class="quiz-board-header">
+        <span>🏆 クイズグランプリ パネル選択</span>
+        <div>
+          <span style="margin-right:12px; color:#8b5cf6; font-size:0.95rem;">トータルスコア: <strong id="totalScoreDisplay" style="font-size:1.1rem;">0</strong> / 270 pt</span>
+          <button class="btn-reset" onclick="resetData()">リセット</button>
+        </div>
+      </div>
+      <div class="quiz-matrix" id="quizMatrix"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 全クリアお祝いダイアログ -->
+<div class="modal-overlay" id="victoryModal">
+  <div class="modal-card">
+    <h2>👑 グランプリ達成！ 👑</h2>
+    <p>おめでとうございます！<br>すべてのクイズパネルをクリアし、見事タイピングマスターになりました！</p>
+    <button class="modal-btn" onclick="closeModal()">挑戦をつづける</button>
   </div>
 </div>
 
 <script>
 /* =========================================================
-   設定パラメータ＆動的表記揺れ対応用語データ
+   1. データ構造＆初期設定
    ========================================================= */
 const CONFIG = {
-  KANA_HINT_DELAY: 1200,   // 1.2秒
-  ROMAJI_HINT_DELAY: 5000, // 5.0秒
-  DECAY_TIME: 10000,       
-  GOLD_THRESHOLD: 2,       
-  CLEARS_PER_STEP: 2       
+  KANA_HINT_DELAY: 1200,   
+  ROMAJI_HINT_DELAY: 5000, 
+  GOLD_THRESHOLD: 2
 };
 
-// patterns の先頭 [0] がデフォルトのヒント表記（標準）
-const STEPS_DATA = [
-  // Step 1: 母音のみ
-  [
-    { word: "愛", kana: "あい", patterns: ["AI"] },
-    { word: "上", kana: "うえ", patterns: ["UE"] },
-    { word: "青い", kana: "あおい", patterns: ["AOI"] },
-    { word: "家", kana: "いえ", patterns: ["IE"] },
-    { word: "甥", kana: "おい", patterns: ["OI"] },
-    { word: "会う", kana: "あう", patterns: ["AU"] },
-    { word: "言う", kana: "いう", patterns: ["IU"] },
-    { word: "いいえ", kana: "いいえ", patterns: ["IIE"] },
-    { word: "葵", kana: "あおい", patterns: ["AOI"] },
-    { word: "上", kana: "うえ", patterns: ["UE"] }
-  ],
-  // Step 2: K行
-  [
-    { word: "柿", kana: "かき", patterns: ["KAKI"] },
-    { word: "菊", kana: "きく", patterns: ["KIKU"] },
-    { word: "池", kana: "いけ", patterns: ["IKE"] },
-    { word: "苔", kana: "こけ", patterns: ["KOKE"] },
-    { word: "声", kana: "こえ", patterns: ["KOE"] },
-    { word: "貝", kana: "かい", patterns: ["KAI"] },
-    { word: "秋", kana: "あき", patterns: ["AKI"] },
-    { word: "木", kana: "き", patterns: ["KI"] },
-    { word: "置く", kana: "おく", patterns: ["OKU"] },
-    { word: "書く", kana: "かく", patterns: ["KAKU"] }
-  ],
-  // Step 3: S行 (SI / SHI の揺れ対応)
-  [
-    { word: "寿司", kana: "すし", patterns: ["SUSI", "SUSHI"] },
-    { word: "傘", kana: "かさ", patterns: ["KASA"] },
-    { word: "汗", kana: "あせ", patterns: ["ASE"] },
-    { word: "石", kana: "いし", patterns: ["ISI", "ISHI"] },
-    { word: "牛", kana: "うし", patterns: ["USI", "USHI"] },
-    { word: "咲く", kana: "さく", patterns: ["SAKU"] },
-    { word: "底", kana: "そこ", patterns: ["SOKO"] },
-    { word: "鹿", kana: "しか", patterns: ["SIKA", "SHIKA"] },
-    { word: "坂", kana: "さか", patterns: ["SAKA"] },
-    { word: "西瓜", kana: "すいか", patterns: ["SUIKA"] }
-  ],
-  // Step 4: T行 (TITI/CHICHI, TI/CHI, TU/TSU の揺れ対応)
-  [
-    { word: "父", kana: "ちち", patterns: ["TITI", "CHICHI", "TICHI", "CHITI"] },
-    { word: "竹", kana: "たけ", patterns: ["TAKE"] },
-    { word: "手", kana: "て", patterns: ["TE"] },
-    { word: "糸", kana: "いと", patterns: ["ITO"] },
-    { word: "音", kana: "おと", patterns: ["OTO"] },
-    { word: "立つ", kana: "たつ", patterns: ["TATU", "TATSU"] },
-    { word: "地下", kana: "ちか", patterns: ["TIKA", "CHIKA"] },
-    { word: "机", kana: "つくえ", patterns: ["TUKUE", "TSUKUE"] },
-    { word: "歌", kana: "うた", patterns: ["UTA"] },
-    { word: "月", kana: "つき", patterns: ["TUKI", "TSUKI"] }
-  ],
-  // Step 5: N行 / H行 (HU/FU の揺れ対応)
-  [
-    { word: "猫", kana: "ねこ", patterns: ["NEKO"] },
-    { word: "犬", kana: "いぬ", patterns: ["INU"] },
-    { word: "何", kana: "なに", patterns: ["NANI"] },
-    { word: "国", kana: "くに", patterns: ["KUNI"] },
-    { word: "布", kana: "ぬの", patterns: ["NUNO"] },
-    { word: "舟", kana: "ふね", patterns: ["HUNE", "FUNE"] },
-    { word: "金", kana: "かね", patterns: ["KANE"] },
-    { word: "蟹", kana: "かに", patterns: ["KANI"] },
-    { word: "服", kana: "ふく", patterns: ["HUKU", "FUKU"] },
-    { word: "きのこ", kana: "きのこ", patterns: ["KINOKO"] }
-  ],
-  // Step 6〜10 (仮データ)
-  [
-    { word: "雨", kana: "あめ", patterns: ["AME"] }, { word: "海", kana: "うみ", patterns: ["UMI"] },
-    { word: "桃", kana: "もも", patterns: ["MOMO"] }, { word: "空", kana: "そら", patterns: ["SORA"] },
-    { word: "森", kana: "もり", patterns: ["MORI"] }, { word: "猿", kana: "さる", patterns: ["SARU"] },
-    { word: "星", kana: "ほし", patterns: ["HOSI", "HOSHI"] }, { word: "花", kana: "はな", patterns: ["HANA"] },
-    { word: "耳", kana: "みみ", patterns: ["MIMI"] }, { word: "虫", kana: "むし", patterns: ["MUSI", "MUSHI"] }
-  ],
-  [ { word: "栗", kana: "くり", patterns: ["KURI"] }, { word: "車", kana: "くるま", patterns: ["KURUMA"] }, { word: "桜", kana: "さくら", patterns: ["SAKURA"] }, { word: "城", kana: "しろ", patterns: ["SIRO", "SHIRO"] }, { word: "赤", kana: "あか", patterns: ["AKA"] }, { word: "黒", kana: "くろ", patterns: ["KURO"] }, { word: "白", kana: "しろ", patterns: ["SIRO", "SHIRO"] }, { word: "青", kana: "あお", patterns: ["AO"] }, { word: "黄色", kana: "きいろ", patterns: ["KIIRO"] }, { word: "彼", kana: "かれ", patterns: ["KARE"] } ],
-  [ { word: "鳥", kana: "とり", patterns: ["TORI"] }, { word: "魚", kana: "さかな", patterns: ["SAKANA"] }, { word: "馬", kana: "うま", patterns: ["UMA"] }, { word: "牛", kana: "うし", patterns: ["USI", "USHI"] }, { word: "狸", kana: "たぬき", patterns: ["TANUKI"] }, { word: "リス", kana: "りす", patterns: ["RISU"] }, { word: "カメ", kana: "かめ", patterns: ["KAME"] }, { word: "タコ", kana: "たこ", patterns: ["TAKO"] }, { word: "セミ", kana: "せみ", patterns: ["SEMI"] }, { word: "ハチ", kana: "はち", patterns: ["HATI", "HACHI"] } ],
-  [ { word: "山", kana: "やま", patterns: ["YAMA"] }, { word: "川", kana: "かわ", patterns: ["KAWA"] }, { word: "部屋", kana: "へや", patterns: ["HEYA"] }, { word: "海", kana: "うみ", patterns: ["UMI"] }, { word: "空", kana: "そら", patterns: ["SORA"] }, { word: "雲", kana: "くも", patterns: ["KUMO"] }, { word: "雨", kana: "あめ", patterns: ["AME"] }, { word: "雪", kana: "ゆき", patterns: ["YUKI"] }, { word: "天気", kana: "てんき", patterns: ["TENKI", "TENNKI"] }, { word: "平和", kana: "へいわ", patterns: ["HEIWA"] } ],
-  [ { word: "朝", kana: "あさ", patterns: ["ASA"] }, { word: "昼", kana: "ひる", patterns: ["HIRU"] }, { word: "夜", kana: "よる", patterns: ["YORU"] }, { word: "平野", kana: "へいや", patterns: ["HEIYA"] }, { word: "夏", kana: "なつ", patterns: ["NATU", "NATSU"] }, { word: "レタス", kana: "れたす", patterns: ["RETASU"] }, { word: "冬", kana: "ふゆ", patterns: ["HUYU", "FUYU"] }, { word: "運転", kana: "うんてん", patterns: ["UNTEN", "UNNTEN"] }, { word: "明日", kana: "あした", patterns: ["ASITA", "ASHITA"] }, { word: "夢", kana: "ゆめ", patterns: ["YUME"] } ]
+// 母音ウォームアップ課題（8文字統一）
+const WARMUP_STEPS = [
+  { name: "Step 1: ういういえいえい", text: "ういういえいえい" },
+  { name: "Step 2: えいえいおうえい", text: "えいえいおうえい" },
+  { name: "Step 3: あいういえいおう", text: "あいういえいおう" },
+  { name: "Step 4: あおいえいえおあ", text: "あおいえいえおあ" },
+  { name: "Step 5: あえいうえおあお", text: "あえいうえおあお" }
 ];
 
-const GOJUON_COLUMNS = [
-  ["あ","い","う","え","お"],
-  ["か","き","く","け","こ"],
-  ["さ","し","す","せ","そ"],
-  ["た","ち","つ","て","と"],
-  ["な","に","ぬ","ね","の"],
-  ["は","ひ","ふ","へ","ほ"],
-  ["ま","み","む","め","も"],
-  ["や","","ゆ","","よ"],
-  ["ら","り","る","れ","ろ"],
-  ["わ","","を","","ん"]
+// 基礎ステージ課題（Wordデータに基づく10ステップ・各5問）
+const BASIC_STEPS_DATA = [
+  [ { word: "青い", kana: "あおい", patterns: ["AOI"] }, { word: "家", kana: "いえ", patterns: ["IE"] }, { word: "追う", kana: "おう", patterns: ["OU"] }, { word: "硫黄", kana: "いおう", patterns: ["IOU"] }, { word: "上", kana: "うえ", patterns: ["UE"] } ],
+  [ { word: "柿", kana: "かき", patterns: ["KAKI"] }, { word: "菊", kana: "きく", patterns: ["KIKU"] }, { word: "池", kana: "いけ", patterns: ["IKE"] }, { word: "声", kana: "こえ", patterns: ["KOE"] }, { word: "秋", kana: "あき", patterns: ["AKI"] } ],
+  [ { word: "寿司", kana: "すし", patterns: ["SUSI", "SUSHI"] }, { word: "傘", kana: "かさ", patterns: ["KASA"] }, { word: "汗", kana: "あせ", patterns: ["ASE"] }, { word: "底", kana: "そこ", patterns: ["SOKO"] }, { word: "鹿", kana: "しか", patterns: ["SIKA", "SHIKA"] } ],
+  [ { word: "竹", kana: "たけ", patterns: ["TAKE"] }, { word: "糸", kana: "いと", patterns: ["ITO"] }, { word: "立つ", kana: "たつ", patterns: ["TATU", "TATSU"] }, { word: "地下", kana: "ちか", patterns: ["TIKA", "CHIKA"] }, { word: "月", kana: "つき", patterns: ["TUKI", "TSUKI"] } ],
+  [ { word: "犬", kana: "いぬ", patterns: ["INU"] }, { word: "猫", kana: "ねこ", patterns: ["NEKO"] }, { word: "何", kana: "なに", patterns: ["NANI"] }, { word: "国", kana: "くに", patterns: ["KUNI"] }, { word: "布", kana: "ぬの", patterns: ["NUNO"] } ],
+  [ { word: "花", kana: "はな", patterns: ["HANA"] }, { word: "舟", kana: "ふね", patterns: ["HUNE", "FUNE"] }, { word: "星", kana: "ほし", patterns: ["HOSI", "HOSHI"] }, { word: "服", kana: "ふく", patterns: ["HUKU", "FUKU"] }, { word: "ヘソ", kana: "へそ", patterns: ["HESO"] } ],
+  [ { word: "雨", kana: "あめ", patterns: ["AME"] }, { word: "海", kana: "うみ", patterns: ["UMI"] }, { word: "桃", kana: "もも", patterns: ["MOMO"] }, { word: "豆", kana: "まめ", patterns: ["MAME"] }, { word: "虫", kana: "むし", patterns: ["MUSI", "MUSHI"] } ],
+  [ { word: "山", kana: "やま", patterns: ["YAMA"] }, { word: "雪", kana: "ゆき", patterns: ["YUKI"] }, { word: "夜", kana: "よる", patterns: ["YORU"] }, { word: "栗", kana: "くり", patterns: ["KURI"] }, { word: "桜", kana: "さくら", patterns: ["SAKURA"] } ],
+  [ { word: "猿", kana: "さる", patterns: ["SARU"] }, { word: "彼", kana: "かれ", patterns: ["KARE"] }, { word: "黒", kana: "くろ", patterns: ["KURO"] }, { word: "川", kana: "かわ", patterns: ["KAWA"] }, { word: "昼間", kana: "ひるま", patterns: ["HIRUMA"] } ],
+  [ { word: "本屋", kana: "ほんや", patterns: ["HONYA", "HONNYA"] }, { word: "気をつけ", kana: "きをつけ", patterns: ["KIWOTUKE", "KIWOTSUKE"] }, { word: "天気", kana: "てんき", patterns: ["TENKI", "TENNKI"] }, { word: "明日", kana: "あした", patterns: ["ASITA", "ASHITA"] }, { word: "正夢", kana: "まさゆめ", patterns: ["MASAYUME"] } ]
 ];
 
-/* =========================================================
-   アプリケーション状態＆初期化
-   ========================================================= */
-let currentStep = 0;
-let stepWordList = [];
-let currentWordInStepIndex = 0;
+// 応用クイズグランプリ課題（3ジャンル × 3難易度 ＝ 全9パネル）
+const APPLIED_PANELS = [
+  // ジャンル1: 体と健康
+  { genreIdx: 0, genreName: "体と健康", pts: 10, items: [
+      { word: "骨", kana: "ほね", patterns: ["HONE"] }, { word: "筋肉", kana: "きんにく", patterns: ["KINNIKU", "KINNNIKU"] }, { word: "心臓", kana: "しんぞう", patterns: ["SINZOU", "SHINZOU"] }, { word: "靭帯", kana: "じんたい", patterns: ["JINTAI", "ZINTAI"] }, { word: "直腸", kana: "ちょくちょう", patterns: ["TYOKUTYOU", "CHOKUCHOU"] }
+  ]},
+  { genreIdx: 0, genreName: "体と健康", pts: 30, items: [
+      { word: "血液", kana: "けつえき", patterns: ["KETUEKI", "KETSUEKI"] }, { word: "ワクチン", kana: "わくちん", patterns: ["WAKUTIN", "WAKUCHIN"] }, { word: "ピロリ菌", kana: "ぴろりきん", patterns: ["PIRORIKIN", "PIRORIKINN"] }, { word: "免疫", kana: "めんえき", patterns: ["MENEKI", "MENNEKI"] }, { word: "マメに マスクを", kana: "まめに ますくを", patterns: ["MAMENI MASUKUWO"] }
+  ]},
+  { genreIdx: 0, genreName: "体と健康", pts: 50, items: [
+      { word: "手指消毒！", kana: "しゅししょうどく！", patterns: ["SYUSISYOUDOKU!", "SHUSHISHOUDOKU!"] }, { word: "血中酸素濃度", kana: "けっちゅうさんそのうど", patterns: ["KETTYUUSANSONOUDO", "KECCHUUSANSONOUDO"] }, { word: "１１９ばんしてください！", kana: "119ばんしてください！", patterns: ["119BANNSITEKUDASAI!", "119BANSHITEKUDASAI!"] }, { word: "「命」の不思議", kana: "「いのち」の ふしぎ", patterns: [" [INOTI] NO HUSIGI", "[INOTHI] NO HUSHIGI"] }, { word: "健康が一番！", kana: "けんこうが いちばん！", patterns: ["KENKOUGA ICHIBAN!", "KENNKOUGA IZIBAN!"] }
+  ]},
 
-let currentTypedString = "";   // ユーザーが打ち込んだ文字例（例: "C"）
-let activeRomajiPattern = ""; // 現在選択されている最適なパターン（例: "CHICHI"）
+  // ジャンル2: 社会とお金
+  { genreIdx: 1, genreName: "社会とお金", pts: 10, items: [
+      { word: "お金", kana: "おかね", patterns: ["OKANE"] }, { word: "銀行", kana: "ぎんこう", patterns: ["GINKOU", "GINNKOU"] }, { word: "お札", kana: "おさつ", patterns: ["OSATU", "OSATSU"] }, { word: "仕事", kana: "しごと", patterns: ["SIGOTO", "SHIGOTO"] }, { word: "価値", kana: "かち", patterns: ["KATI", "KACHI"] }
+  ]},
+  { genreIdx: 1, genreName: "社会とお金", pts: 30, items: [
+      { word: "会社", kana: "かいしゃ", patterns: ["KAISYA", "KAISHA"] }, { word: "キャッシュレス", kana: "きゃっしゅれす", patterns: ["KYASSYURESUS", "KYASSHURESU"] }, { word: "消費税", kana: "しょうひぜい", patterns: ["SYOUHIZEI", "SHOUHIZEI"] }, { word: "コード決済", kana: "こーどけっさい", patterns: ["KO-DOKESSAI", "KO-DOKETUSAI"] }, { word: "ノーベル賞", kana: "のーべるしょう", patterns: ["NO-BERUSYOU", "NO-BERUSHOU"] }
+  ]},
+  { genreIdx: 1, genreName: "社会とお金", pts: 50, items: [
+      { word: "価値を交換する", kana: "かちを こうかんする", patterns: ["KATIWO KOUKANSURU", "KACHIWO KOUKANNSSURU"] }, { word: "100円の 「おもみ」", kana: "100えんの 「おもみ」", patterns: ["100ENNO [OMOMI]", "100ENNO [OMOMI]"] }, { word: "「モノ」と 「サービス」", kana: "「もの」と 「さーびす」", patterns: ["[MONO] TO [SA-BISU]"] }, { word: "社会の仕組み", kana: "しゃかいの しくみ", patterns: ["SYAKAINO SIKUMI", "SHAKAINO SHIKUMI"] }, { word: "未来への 「投資」！", kana: "みらいへの 「とうし」！", patterns: ["MIRAIHENO [TOUSI]!", "MIRAIHENO [TOUSHI]!"] }
+  ]},
 
+  // ジャンル3: 自然と生き物
+  { genreIdx: 2, genreName: "自然と生き物", pts: 10, items: [
+      { word: "メダカ", kana: "めだか", patterns: ["MEDAKA"] }, { word: "スズメ", kana: "すずめ", patterns: ["SUZUME"] }, { word: "テントウムシ", kana: "てんとうむし", patterns: ["TENTOUMUSI", "TENTOUMUSHI"] }, { word: "地球", kana: "ちきゅう", patterns: ["TIKYUU", "CHIKYUU"] }, { word: "太陽系", kana: "たいようけい", patterns: ["TAIYOUKEI"] }
+  ]},
+  { genreIdx: 2, genreName: "自然と生き物", pts: 30, items: [
+      { word: "カピバラ", kana: "かぴばら", patterns: ["KAPIBARA"] }, { word: "ダイオウグソクムシ", kana: "だいおうぐそくむし", patterns: ["DAIOUGUSOKUMUSI", "DAIOUGUSOKUMUSHI"] }, { word: "シーラカンス", kana: "しーらかんす", patterns: ["SI-RAKANSU", "SHI-RAKANSU"] }, { word: "超伝導", kana: "ちょうでんどう", patterns: ["TYOUDENDOU", "CHOUDENDOU"] }, { word: "シジュウカラ", kana: "しじゅうから", patterns: ["SIZYUUKARA", "SHIJUUKARA"] }
+  ]},
+  { genreIdx: 2, genreName: "自然と生き物", pts: 50, items: [
+      { word: "命のつながり", kana: "いのちの つながり", patterns: ["INOTINO TSUNAGARI", "INOTHINO TSUNAGARI"] }, { word: "ヒガシニホンアマガエル", kana: "ひがしにほんあまがえる", patterns: ["HIGASINIHONAMAGAERU", "HIGASHINIHONAMAGAERU"] }, { word: "自然の 「めぐみ」", kana: "しぜんの 「めぐみ」", patterns: ["SIZENNO [MEGUMI]", "SHIZENNO [MEGUMI]"] }, { word: "「生態系」を守れるか？", kana: "「せいたいけい」をまもれるか？", patterns: ["[SEITAIKEI]WOMAMORERUKA?", "[SEITAIKEI]WOMAMORERUKA?"] }, { word: "ばくはつ！ 好奇心", kana: "ばくはつ！ こうきしん", patterns: ["BAKUHATSU! KOUKISIN", "BAKUHATSU! KOUKISHIN"] }
+  ]}
+];
+
+const GOJUON_MATRIX = [
+  ["あ","か","さ","た","な","は","ま","や","ら","わ"],
+  ["い","き","し","ち","に","ひ","み","","り",""],
+  ["う","く","す","つ","ぬ","ふ","む","ゆ","る","を"],
+  ["え","け","せ","て","ね","へ","め","","れ",""],
+  ["お","こ","そ","と","の","ほ","も","よ","ろ","ん"]
+];
+
+const VOWEL_MAP = { 'A': 'あ', 'I': 'い', 'U': 'う', 'E': 'え', 'O': 'お' };
+
+/* 状態管理 */
+let currentAppMode = 'warmup'; // 'warmup' | 'basic' | 'applied'
+let audioCtx = null;
+
+// ウォームアップ
+let currentWarmupStep = 0;
+let warmupBpm = 60;
+let warmupTimer = null;
+let warmupCharIndex = 0;
+let warmupTypedCount = 0;
+let warmupClearedPending = false;
+
+// 基礎練習
+let currentBasicStep = 0;
+let basicWordList = [];
+let currentBasicWordIdx = 0;
+
+// 応用クイズグランプリ
+let currentAppliedPanelIdx = 0;
+let appliedWordList = [];
+let currentAppliedWordIdx = 0;
+
+// 共通出題状態
+let currentTypedString = "";
+let activeRomajiPattern = "";
 let currentWord = {};
 let currentState = { kanaVisible: false, romajiVisible: false };
 let kanaTimer = null;
 let romajiTimer = null;
 
-let userProgress = { gojuon: {}, stepClears: [0,0,0,0,0,0,0,0,0,0] };
+let userProgress = { 
+  gojuon: {}, 
+  basicClears: [0,0,0,0,0,0,0,0,0,0], 
+  warmupClears: [0,0,0,0,0],
+  appliedClears: [false,false,false,false,false,false,false,false,false]
+};
+
 try {
-  const saved = localStorage.getItem('gojuon_progress');
+  const saved = localStorage.getItem('typing_app_grandprix');
   if (saved) {
     const parsed = JSON.parse(saved);
     if (parsed.gojuon) userProgress.gojuon = parsed.gojuon;
-    if (parsed.stepClears && Array.isArray(parsed.stepClears)) userProgress.stepClears = parsed.stepClears;
+    if (parsed.basicClears) userProgress.basicClears = parsed.basicClears;
+    if (parsed.warmupClears) userProgress.warmupClears = parsed.warmupClears;
+    if (parsed.appliedClears) userProgress.appliedClears = parsed.appliedClears;
   }
 } catch(e) {}
 
+/* =========================================================
+   2. 初期化 ＆ キーボード・ボード生成
+   ========================================================= */
 function init() {
   createKeyboard();
   renderGojuonGrid();
-  startStep(0);
+  renderQuizMatrix();
+  switchMode('warmup');
 
   window.addEventListener('keydown', handleKeyDown);
-  setInterval(checkDecayStatus, 2000);
 }
 
+/* 4段拡張キーボードの生成 */
 function createKeyboard() {
   const rows = [
-    ["Q","W","E","R","T","Y","U","I","O","P"],
-    ["A","S","D","F","G","H","J","K","L"],
-    ["Z","X","C","V","B","N","M"]
+    ["1","2","3","4","5","6","7","8","9","0","-"],
+    ["Q","W","E","R","T","Y","U","I","O","P","","["],
+    ["A","S","D","F","G","H","J","K","L","","]"],
+    ["SHIFT","Z","X","C","V","B","N","M",",",".","?","!"]
   ];
+
   rows.forEach((row, i) => {
-    const rowEl = document.getElementById(`row${i+1}`);
+    const rowEl = document.getElementById(`row${i}`);
     rowEl.innerHTML = '';
     row.forEach(key => {
       const keyEl = document.createElement('div');
-      keyEl.className = 'key';
+      keyEl.className = `key ${key === 'SHIFT' ? 'key-wide' : ''}`;
       keyEl.id = `key-${key}`;
-      keyEl.innerText = key;
       
-      // クリック/タップのハンドラを追加
-      keyEl.onclick = () => {
-        handleCharInput(key);
-      };
-
+      let subText = VOWEL_MAP[key] ? `<span class="key-sub">${VOWEL_MAP[key]}</span>` : '';
+      keyEl.innerHTML = `<span>${key}</span>${subText}`;
+      
+      keyEl.onclick = () => handleCharInput(key);
       rowEl.appendChild(keyEl);
     });
   });
 }
 
-function shuffleArray(array) {
-  const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+/* 50音マップの描画 */
+function renderGojuonGrid() {
+  const gridEl = document.getElementById('gojuonGrid');
+  gridEl.innerHTML = '';
+
+  let totalMastered = 0;
+  let totalCount = 0;
+
+  for (let row = 0; row < 5; row++) {
+    for (let col = 0; col < 10; col++) {
+      const char = GOJUON_MATRIX[row][col];
+      const cell = document.createElement('div');
+      cell.className = 'grid-cell';
+
+      if (char !== "") {
+        totalCount++;
+        const data = userProgress.gojuon[char] || { status: 0 };
+        cell.classList.add(`status-${data.status}`);
+        if (data.status >= 2) totalMastered++;
+        cell.innerHTML = `<span>${char}</span>`;
+      } else {
+        cell.style.visibility = 'hidden';
+      }
+      gridEl.appendChild(cell);
+    }
   }
-  return arr;
+
+  document.getElementById('progressText').innerText = `マスター: ${totalMastered} / ${totalCount}`;
 }
 
-function startStep(stepIdx) {
-  if (stepIdx > 0 && userProgress.stepClears[stepIdx - 1] < CONFIG.CLEARS_PER_STEP) {
-    return;
-  }
-  currentStep = stepIdx;
-  stepWordList = shuffleArray(STEPS_DATA[currentStep]);
-  currentWordInStepIndex = 0;
+/* クイズグランプリ選択盤（3列×4行：ジャンル列 × 点数行）の描画 */
+function renderQuizMatrix() {
+  const matrixEl = document.getElementById('quizMatrix');
+  matrixEl.innerHTML = '';
 
-  renderStepBar();
-  loadQuestion();
+  const genres = ["体と健康", "社会とお金", "自然と生き物"];
+  const ptsList = [10, 30, 50];
+
+  // 1行目：ジャンル名ヘッダー（3列）
+  genres.forEach(gName => {
+    const header = document.createElement('div');
+    header.className = 'matrix-header-cell';
+    header.innerText = gName;
+    matrixEl.appendChild(header);
+  });
+
+  // 2〜4行目：各点数ごとのボタン行（10pt行、30pt行、50pt行）
+  let totalScore = 0;
+
+  // 点数 p (0: 10pt, 1: 30pt, 2: 50pt)
+  for (let p = 0; p < 3; p++) {
+    const pt = ptsList[p];
+
+    // ジャンル g (0: 体と健康, 1: 社会とお金, 2: 自然と生き物)
+    for (let g = 0; g < 3; g++) {
+      const panelIdx = g * 3 + p; // 対応するパネルのインデックス
+      const isCleared = userProgress.appliedClears[panelIdx];
+
+      if (isCleared) totalScore += pt;
+
+      const btn = document.createElement('button');
+      btn.className = `quiz-panel-btn ${isCleared ? 'cleared' : ''} ${panelIdx === currentAppliedPanelIdx ? 'active' : ''}`;
+      btn.innerText = `${pt} pt`;
+      btn.onclick = () => selectAppliedPanel(panelIdx);
+
+      matrixEl.appendChild(btn);
+    }
+  }
+
+  document.getElementById('totalScoreDisplay').innerText = totalScore;
 }
 
-function renderStepBar() {
-  const stepBarEl = document.getElementById('stepBar');
-  stepBarEl.innerHTML = '';
+/* =========================================================
+   3. モード切替制御
+   ========================================================= */
+function switchMode(mode) {
+  currentAppMode = mode;
+  document.body.setAttribute('data-mode', mode);
 
-  for (let i = 0; i < 10; i++) {
-    const clears = userProgress.stepClears[i] || 0;
-    const isUnlocked = (i === 0) || ((userProgress.stepClears[i - 1] || 0) >= CONFIG.CLEARS_PER_STEP);
-    const isCleared = clears >= CONFIG.CLEARS_PER_STEP;
-    const isActive = (i === currentStep);
+  // ★モード切替時は必ず最初にメトロノームを完全停止する
+  stopWarmupMetronome();
+
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('active'));
+
+  const bottomBasic = document.getElementById('bottomBasic');
+  const bottomApplied = document.getElementById('bottomApplied');
+
+  if (mode === 'warmup') {
+    document.getElementById('tabWarmup').classList.add('active');
+    document.getElementById('panelWarmup').classList.add('active');
+    bottomBasic.style.display = 'none';
+    bottomApplied.style.display = 'none';
+    startWarmupStep(currentWarmupStep);
+  } else if (mode === 'basic') {
+    document.getElementById('tabBasic').classList.add('active');
+    document.getElementById('panelBasic').classList.add('active');
+    bottomBasic.style.display = 'flex';
+    bottomApplied.style.display = 'none';
+    startBasicStep(currentBasicStep);
+  } else if (mode === 'applied') {
+    document.getElementById('tabApplied').classList.add('active');
+    document.getElementById('panelApplied').classList.add('active');
+    bottomBasic.style.display = 'none';
+    bottomApplied.style.display = 'flex';
+    selectAppliedPanel(currentAppliedPanelIdx);
+  }
+}
+/* =========================================================
+   4. ステージ1：母音ウォームアップ
+   ========================================================= */
+function startWarmupStep(stepIdx) {
+  currentWarmupStep = stepIdx;
+  warmupCharIndex = 0;
+  warmupTypedCount = 0;
+  warmupClearedPending = false;
+
+  const data = WARMUP_STEPS[currentWarmupStep];
+  document.getElementById('warmupStepTitle').innerText = data.name;
+
+  renderWarmupDisplay();
+  renderWarmupStepBar();
+
+  if (!warmupTimer) restartWarmupMetronome();
+  else updateWarmupCharHighlight();
+}
+
+function renderWarmupDisplay() {
+  const container = document.getElementById('warmupDisplay');
+  container.innerHTML = '';
+  const text = WARMUP_STEPS[currentWarmupStep].text;
+
+  for (let i = 0; i < text.length; i++) {
+    const span = document.createElement('span');
+    span.className = `warmup-char ${i === warmupCharIndex ? 'active-target' : ''}`;
+    span.id = `warmup-char-${i}`;
+    span.innerText = text[i];
+    container.appendChild(span);
+  }
+}
+
+/* テンポを一切壊さず次の8文字周期の先頭で次ステップにバトンタッチ */
+function restartWarmupMetronome() {
+  stopWarmupMetronome();
+  const interval = (60 / warmupBpm) * 1000;
+
+  warmupTimer = setInterval(() => {
+    // ★ウォームアップモード以外なら即座に停止して処理を抜ける
+    if (currentAppMode !== 'warmup') {
+      stopWarmupMetronome();
+      return;
+    }
+
+    playBeatSound(); // リズム音
+    
+    warmupCharIndex = (warmupCharIndex + 1) % 8;
+
+    // 8文字周期の先頭（0番目）に戻った瞬間
+    if (warmupCharIndex === 0) {
+      if (warmupClearedPending) {
+        warmupClearedPending = false;
+        userProgress.warmupClears[currentWarmupStep] = 1;
+        saveProgress();
+
+        // テンポを壊さず即座に次のステップの文字列へ切り替え
+        currentWarmupStep = (currentWarmupStep + 1) % WARMUP_STEPS.length;
+        warmupTypedCount = 0;
+        
+        document.getElementById('warmupStepTitle').innerText = WARMUP_STEPS[currentWarmupStep].name;
+        renderWarmupStepBar();
+      }
+      renderWarmupDisplay();
+    }
+
+    updateWarmupCharHighlight();
+  }, interval);
+}
+function stopWarmupMetronome() {
+  if (warmupTimer) {
+    clearInterval(warmupTimer);
+    warmupTimer = null;
+  }
+}
+
+function changeBPM(delta) {
+  warmupBpm = Math.max(40, Math.min(180, warmupBpm + delta));
+  document.getElementById('bpmDisplay').innerText = warmupBpm;
+  restartWarmupMetronome();
+}
+
+function updateWarmupCharHighlight() {
+  document.querySelectorAll('.warmup-char').forEach((el, idx) => {
+    if (idx === warmupCharIndex) el.classList.add('active-target');
+    else el.classList.remove('active-target');
+  });
+}
+
+function renderWarmupStepBar() {
+  const bar = document.getElementById('warmupStepBar');
+  bar.innerHTML = '';
+
+  for (let i = 0; i < 5; i++) {
+    const isCleared = (userProgress.warmupClears[i] || 0) > 0;
+    const isActive = (i === currentWarmupStep);
 
     const btn = document.createElement('div');
-    btn.className = 'step-btn';
-
-    if (!isUnlocked) {
-      btn.classList.add('locked');
-      btn.innerHTML = `<span class="step-num">🔒</span>`;
-    } else {
-      if (isCleared) btn.classList.add('cleared');
-      if (isActive) btn.classList.add('active');
-
-      let dots = '';
-      for (let c = 0; c < CONFIG.CLEARS_PER_STEP; c++) {
-        dots += (c < clears) ? '●' : '○';
-      }
-
-      btn.innerHTML = `
-        <span class="step-num">${i + 1}</span>
-        <span class="step-clear-dots">${dots}</span>
-      `;
-      btn.onclick = () => startStep(i);
-    }
-    stepBarEl.appendChild(btn);
+    btn.className = `step-btn ${isCleared ? 'cleared' : ''} ${isActive ? 'active' : ''}`;
+    btn.innerText = `Step ${i + 1}`;
+    btn.onclick = () => startWarmupStep(i);
+    bar.appendChild(btn);
   }
 
-  document.getElementById('stepProgressText').innerText = 
-    `Step ${currentStep + 1} (${currentWordInStepIndex + 1} / 10問目)`;
+  document.getElementById('warmupProgressText').innerText = `${currentWarmupStep + 1} / 5 ステップ`;
 }
 
-function loadQuestion() {
+/* =========================================================
+   5. ステージ2：ローマ字練習（基礎）
+   ========================================================= */
+function startBasicStep(stepIdx) {
+  if (stepIdx > 0 && userProgress.basicClears[stepIdx - 1] === 0) return;
+  
+  currentBasicStep = stepIdx;
+  basicWordList = BASIC_STEPS_DATA[currentBasicStep];
+  currentBasicWordIdx = 0;
+
+  renderBasicStepBar();
+  loadBasicQuestion();
+}
+
+function renderBasicStepBar() {
+  const bar = document.getElementById('basicStepBar');
+  bar.innerHTML = '';
+
+  for (let i = 0; i < 10; i++) {
+    const isUnlocked = (i === 0) || (userProgress.basicClears[i - 1] > 0);
+    const isCleared = userProgress.basicClears[i] > 0;
+    const isActive = (i === currentBasicStep);
+
+    const btn = document.createElement('div');
+    btn.className = `step-btn ${isCleared ? 'cleared' : ''} ${isActive ? 'active' : ''}`;
+
+    if (!isUnlocked) {
+      btn.style.opacity = '0.4';
+      btn.style.cursor = 'not-allowed';
+      btn.innerText = `🔒 ${i + 1}`;
+    } else {
+      btn.innerText = `${i + 1}`;
+      btn.onclick = () => startBasicStep(i);
+    }
+    bar.appendChild(btn);
+  }
+
+  document.getElementById('basicProgressText').innerText = `Step ${currentBasicStep + 1} (${currentBasicWordIdx + 1} / 5問)`;
+}
+
+function loadBasicQuestion() {
   clearTimeout(kanaTimer);
   clearTimeout(romajiTimer);
 
-  currentWord = stepWordList[currentWordInStepIndex];
+  currentWord = basicWordList[currentBasicWordIdx];
   currentTypedString = "";
-  activeRomajiPattern = currentWord.patterns[0]; // 初期ヒントはデフォルト（訓令式など）
-
+  activeRomajiPattern = currentWord.patterns[0];
   currentState = { kanaVisible: false, romajiVisible: false };
 
-  document.getElementById('kanjiDisplay').innerText = currentWord.word;
+  document.getElementById('basicKanjiDisplay').innerText = currentWord.word;
   
-  const kanaEl = document.getElementById('kanaDisplay');
+  const kanaEl = document.getElementById('basicKanaDisplay');
   kanaEl.innerText = currentWord.kana;
   kanaEl.className = 'kana-display fade-hidden';
 
-  updateRomajiDisplay();
-  renderStepBar();
+  updateRomajiDisplay('basicRomajiDisplay');
+  renderBasicStepBar();
 
   kanaTimer = setTimeout(() => {
     currentState.kanaVisible = true;
@@ -548,13 +1064,59 @@ function loadQuestion() {
 
   romajiTimer = setTimeout(() => {
     currentState.romajiVisible = true;
-    updateRomajiDisplay();
+    updateRomajiDisplay('basicRomajiDisplay');
   }, CONFIG.ROMAJI_HINT_DELAY);
 }
 
-// 画面表示更新（入力に合わせてヒントを動的切り替え）
-function updateRomajiDisplay() {
-  const romajiEl = document.getElementById('romajiDisplay');
+/* =========================================================
+   6. ステージ3：クイズグランプリ（応用）
+   ========================================================= */
+function selectAppliedPanel(panelIdx) {
+  currentAppliedPanelIdx = panelIdx;
+  const panelData = APPLIED_PANELS[currentAppliedPanelIdx];
+  appliedWordList = panelData.items;
+  currentAppliedWordIdx = 0;
+
+  renderQuizMatrix();
+  loadAppliedQuestion();
+}
+
+function loadAppliedQuestion() {
+  clearTimeout(kanaTimer);
+  clearTimeout(romajiTimer);
+
+  const panelData = APPLIED_PANELS[currentAppliedPanelIdx];
+  currentWord = appliedWordList[currentAppliedWordIdx];
+  currentTypedString = "";
+  activeRomajiPattern = currentWord.patterns[0];
+  currentState = { kanaVisible: false, romajiVisible: false };
+
+  document.getElementById('appliedPanelTag').innerText = `【${panelData.genreName}】 ${panelData.pts} pt パネル`;
+  document.getElementById('appliedKanjiDisplay').innerText = currentWord.word;
+  
+  const kanaEl = document.getElementById('appliedKanaDisplay');
+  kanaEl.innerText = currentWord.kana;
+  kanaEl.className = 'kana-display fade-hidden';
+
+  document.getElementById('appliedProgressText').innerText = `${currentAppliedWordIdx + 1} / 5 問目`;
+  document.getElementById('appliedSubText').innerText = `正解打鍵で ${panelData.pts} pt GET!`;
+
+  updateRomajiDisplay('appliedRomajiDisplay');
+
+  kanaTimer = setTimeout(() => {
+    currentState.kanaVisible = true;
+    kanaEl.className = 'kana-display fade-visible';
+  }, CONFIG.KANA_HINT_DELAY);
+
+  romajiTimer = setTimeout(() => {
+    currentState.romajiVisible = true;
+    updateRomajiDisplay('appliedRomajiDisplay');
+  }, CONFIG.ROMAJI_HINT_DELAY);
+}
+
+/* 共通表示更新 & Shift同時ハイライト */
+function updateRomajiDisplay(targetId) {
+  const romajiEl = document.getElementById(targetId);
   let html = '';
 
   for (let i = 0; i < activeRomajiPattern.length; i++) {
@@ -569,42 +1131,60 @@ function updateRomajiDisplay() {
   }
 
   romajiEl.innerHTML = html;
+  romajiEl.className = currentState.romajiVisible ? 'romaji-display fade-hint' : 'romaji-display fade-hidden';
 
-  if (currentState.romajiVisible) {
-    romajiEl.className = 'romaji-display fade-hint';
-  } else {
-    romajiEl.className = 'romaji-display fade-hidden';
+  // 次に打つべき文字がShiftを必要とする記号（!, ?, 「, 」）ならShiftキーも同時ハイライト
+  if (currentTypedString.length < activeRomajiPattern.length) {
+    const nextChar = activeRomajiPattern[currentTypedString.length];
+    if (['!', '?', '[', ']'].includes(nextChar)) {
+      const shiftEl = document.getElementById('key-SHIFT');
+      if (shiftEl) shiftEl.classList.add('active');
+    }
   }
 }
 
 /* =========================================================
-   入力＆動的パターン判定ロジック
+   7. キー打鍵 ＆ 入力判定ロジック
    ========================================================= */
 function handleKeyDown(e) {
-  const key = e.key.toUpperCase();
-  if (!/^[A-Z]$/.test(key)) return;
+  let key = e.key.toUpperCase();
+  if (key === ' ') key = ' '; // スペースキー対応
   handleCharInput(key);
 }
 
 function handleCharInput(key) {
   highlightKey(key);
 
-  const testString = currentTypedString + key;
+  if (currentAppMode === 'warmup') {
+    // --- ウォームアップ モード ---
+    const text = WARMUP_STEPS[currentWarmupStep].text;
+    const pressedKana = VOWEL_MAP[key];
 
-  // patterns の中で、今回の打鍵（testString）から始まるものが存在するか検索
-  const matchedPatterns = currentWord.patterns.filter(p => p.startsWith(testString));
+    if (!pressedKana) return;
 
-  if (matchedPatterns.length > 0) {
-    // 正解入力！
-    currentTypedString = testString;
-    // 一番最初にヒットしたパターンに画面のヒント文字を切り替える（化けさせる）
-    activeRomajiPattern = matchedPatterns[0];
+    const validIndices = [warmupCharIndex, (warmupCharIndex - 1 + 8) % 8, (warmupCharIndex + 1) % 8];
+    const isMatch = validIndices.some(idx => text[idx] === pressedKana);
 
-    updateRomajiDisplay();
+    if (isMatch) {
+      speakVowel(pressedKana);
+      warmupTypedCount++;
+      if (warmupTypedCount >= 8) warmupClearedPending = true;
+    }
+  } else {
+    // --- 基礎 ＆ 応用 モード（完全消音） ---
+    const testString = currentTypedString + key;
+    const matchedPatterns = currentWord.patterns.filter(p => p.startsWith(testString));
 
-    // 完全一致でクリア判定
-    if (currentTypedString === activeRomajiPattern) {
-      onWordCleared();
+    if (matchedPatterns.length > 0) {
+      currentTypedString = testString;
+      activeRomajiPattern = matchedPatterns[0];
+
+      const targetId = (currentAppMode === 'basic') ? 'basicRomajiDisplay' : 'appliedRomajiDisplay';
+      updateRomajiDisplay(targetId);
+
+      if (currentTypedString === activeRomajiPattern) {
+        onWordCleared();
+      }
     }
   }
 }
@@ -618,103 +1198,109 @@ function highlightKey(key) {
 }
 
 function onWordCleared() {
-  const chars = currentWord.kana.split('');
-  chars.forEach(char => {
-    if (!userProgress.gojuon[char]) {
-      userProgress.gojuon[char] = { status: 0, count: 0, lastUpdated: Date.now() };
-    }
-
-    let p = userProgress.gojuon[char];
-    p.lastUpdated = Date.now();
-
-    if (currentState.romajiVisible) {
-      p.status = Math.max(p.status, 1);
-      p.count = 0;
-    } else {
+  if (currentAppMode === 'basic') {
+    // 基礎モード：50音マップ更新
+    const chars = currentWord.kana.split('');
+    chars.forEach(char => {
+      if (!userProgress.gojuon[char]) userProgress.gojuon[char] = { status: 0, count: 0 };
+      let p = userProgress.gojuon[char];
       p.count += 1;
-      if (p.count >= CONFIG.GOLD_THRESHOLD) {
-        p.status = 3;
-      } else {
-        p.status = Math.max(p.status, 2);
-      }
+      p.status = (p.count >= CONFIG.GOLD_THRESHOLD) ? 3 : Math.max(p.status, 2);
+    });
+
+    renderGojuonGrid();
+    currentBasicWordIdx++;
+
+    if (currentBasicWordIdx >= 5) {
+      userProgress.basicClears[currentBasicStep] = 1;
+      saveProgress();
+
+      setTimeout(() => {
+        if (currentBasicStep < 9) startBasicStep(currentBasicStep + 1);
+        else startBasicStep(currentBasicStep);
+      }, 200);
+    } else {
+      setTimeout(loadBasicQuestion, 300);
     }
-  });
+  } else if (currentAppMode === 'applied') {
+    // 応用モード：パネルクリア判定
+    currentAppliedWordIdx++;
 
-  saveProgress();
-  renderGojuonGrid();
+    if (currentAppliedWordIdx >= 5) {
+      userProgress.appliedClears[currentAppliedPanelIdx] = true;
+      saveProgress();
+      renderQuizMatrix();
 
-  currentWordInStepIndex++;
+      // 全パネルクリアチェック
+      const allCleared = userProgress.appliedClears.every(c => c === true);
 
-  if (currentWordInStepIndex >= 10) {
-    userProgress.stepClears[currentStep] = (userProgress.stepClears[currentStep] || 0) + 1;
-    saveProgress();
-
-    setTimeout(() => {
-      alert(`🎉 Step ${currentStep + 1} クリア！ (${userProgress.stepClears[currentStep]} / ${CONFIG.CLEARS_PER_STEP} 回クリア)`);
-      
-      if (userProgress.stepClears[currentStep] >= CONFIG.CLEARS_PER_STEP && currentStep < 9) {
-        startStep(currentStep + 1);
-      } else {
-        startStep(currentStep);
-      }
-    }, 200);
-  } else {
-    setTimeout(loadQuestion, 300);
-  }
-}
-
-function renderGojuonGrid() {
-  const gridEl = document.getElementById('gojuonGrid');
-  gridEl.innerHTML = '';
-
-  let totalMastered = 0;
-  let totalCount = 0;
-
-  for (let row = 0; row < 5; row++) {
-    for (let col = 0; col < GOJUON_COLUMNS.length; col++) {
-      const char = GOJUON_COLUMNS[col][row];
-      const cell = document.createElement('div');
-      cell.className = 'grid-cell';
-
-      if (char !== "") {
-        totalCount++;
-        const data = userProgress.gojuon[char] || { status: 0, count: 0, lastUpdated: 0 };
-        
-        cell.classList.add(`status-${data.status}`);
-        if (data.status >= 2) totalMastered++;
-
-        if (data.status === 1 && (Date.now() - data.lastUpdated > CONFIG.DECAY_TIME)) {
-          cell.classList.add('decayed');
+      setTimeout(() => {
+        if (allCleared) {
+          document.getElementById('victoryModal').style.display = 'flex';
+        } else {
+          // 次の未クリアパネルへ
+          const nextPanel = userProgress.appliedClears.findIndex(c => c === false);
+          if (nextPanel !== -1) selectAppliedPanel(nextPanel);
         }
-
-        cell.innerHTML = `<span>${char}</span>`;
-      } else {
-        cell.style.visibility = 'hidden';
-      }
-      gridEl.appendChild(cell);
+      }, 200);
+    } else {
+      setTimeout(loadAppliedQuestion, 300);
     }
   }
-
-  document.getElementById('progressText').innerText = `マスター: ${totalMastered} / ${totalCount}`;
 }
 
-function checkDecayStatus() {
-  renderGojuonGrid();
+/* 音声読み上げ & ビート音 */
+function playBeatSound() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.08);
+  gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.08);
+}
+
+function speakVowel(kana) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const uttr = new SpeechSynthesisUtterance(kana);
+    uttr.lang = 'ja-JP';
+    uttr.rate = 1.4;
+    uttr.pitch = 1.2;
+    window.speechSynthesis.speak(uttr);
+  }
 }
 
 function saveProgress() {
   try {
-    localStorage.setItem('gojuon_progress', JSON.stringify(userProgress));
+    localStorage.setItem('typing_app_grandprix', JSON.stringify(userProgress));
   } catch(e) {}
 }
 
 function resetData() {
-  if (confirm("これまでの学習データをすべてリセットしますか？")) {
-    localStorage.removeItem('gojuon_progress');
-    userProgress = { gojuon: {}, stepClears: [0,0,0,0,0,0,0,0,0,0] };
+  if (confirm("これまでの全ステージの学習進捗データを初期化しますか？")) {
+    localStorage.removeItem('typing_app_grandprix');
+    userProgress = { 
+      gojuon: {}, 
+      basicClears: [0,0,0,0,0,0,0,0,0,0], 
+      warmupClears: [0,0,0,0,0],
+      appliedClears: [false,false,false,false,false,false,false,false,false]
+    };
     renderGojuonGrid();
-    startStep(0);
+    renderQuizMatrix();
+    startWarmupStep(0);
+    startBasicStep(0);
+    selectAppliedPanel(0);
   }
+}
+
+function closeModal() {
+  document.getElementById('victoryModal').style.display = 'none';
 }
 
 window.onload = init;
