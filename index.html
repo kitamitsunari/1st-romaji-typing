@@ -1,4 +1,373 @@
-// patterns の先頭 [0] がデフォルトのヒント表記（標準）
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ローマ字タイピング ＆ 母音ウォーミングアップ</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --accent: #38bdf8;
+      --vowel-a: #ef4444;
+      --vowel-i: #eab308;
+      --vowel-u: #22c55e;
+      --vowel-e: #3b82f6;
+      --vowel-o: #a855f7;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* 上部モード切り替えタブ */
+    .mode-tabs {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: bold;
+      border: 2px solid #334155;
+      background: var(--card-bg);
+      color: #94a3b8;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+    }
+
+    header {
+      background: var(--card-bg);
+      padding: 12px 20px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #334155;
+    }
+
+    h1 { font-size: 1.1rem; color: var(--accent); }
+
+    .status-bar {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .control-panel {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      border: 1px solid #334155;
+    }
+
+    .step-badge {
+      font-size: 0.85rem;
+      background: #334155;
+      color: var(--accent);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+
+    .target-display {
+      font-size: 2rem;
+      font-weight: bold;
+      letter-spacing: 4px;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .target-char {
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: #334155;
+      transition: all 0.15s;
+    }
+
+    .target-char.active {
+      background: var(--accent);
+      color: #0f172a;
+      transform: scale(1.2);
+      box-shadow: 0 0 12px var(--accent);
+    }
+
+    .romaji-hint {
+      font-size: 1.3rem;
+      color: #94a3b8;
+      letter-spacing: 3px;
+      min-height: 32px;
+      font-family: monospace;
+    }
+
+    .romaji-typed { color: var(--accent); }
+    .romaji-untyped { color: #475569; }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-next { background: #10b981; color: white; }
+    .btn-next:hover { background: #059669; }
+
+    .btn-stop { background: #ef4444; color: white; }
+    .btn-stop:hover { background: #dc2626; }
+
+    .btn-romaji { background: #a855f7; color: white; }
+    .btn-romaji:hover { background: #9333ea; }
+
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #0f172a;
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 1px solid #334155;
+      font-size: 0.85rem;
+    }
+
+    .speed-btn {
+      background: #334155;
+      color: white;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .speed-btn:hover { background: var(--accent); color: #0f172a; }
+
+    /* ソフトキーボード配置 */
+    .keyboard-block {
+      background: var(--card-bg);
+      padding: 16px;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid #334155;
+    }
+
+    .key-row { display: flex; gap: 6px; }
+
+    .key {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      background: #1e293b;
+      color: #475569;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1rem;
+      border: 2px solid #334155;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+
+    .key.active-target {
+      color: #ffffff;
+      border-color: #94a3b8;
+      background: #334155;
+    }
+
+    .key[data-key="A"].active-target { border-color: var(--vowel-a); }
+    .key[data-key="I"].active-target { border-color: var(--vowel-i); }
+    .key[data-key="U"].active-target { border-color: var(--vowel-u); }
+    .key[data-key="E"].active-target { border-color: var(--vowel-e); }
+    .key[data-key="O"].active-target { border-color: var(--vowel-o); }
+
+    /* 打鍵熟練度レベル（グラデーション） */
+    .key.lvl-1 { background: #1e3a8a !important; color: #fff !important; }
+    .key.lvl-2 { background: #065f46 !important; color: #fff !important; }
+    .key.lvl-3 { background: #b45309 !important; color: #fff !important; box-shadow: 0 0 10px #f59e0b; }
+
+    .key.pressed {
+      transform: scale(0.9);
+      background: #f8fafc !important;
+      color: #0f172a !important;
+    }
+
+    .key-sub { font-size: 0.6rem; opacity: 0.8; margin-top: -2px; }
+
+    /* モード非表示用 */
+    .mode-section { display: none; width: 100%; flex-direction: column; gap: 16px; }
+    .mode-section.active { display: flex; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- モード切替タブ -->
+  <div class="mode-tabs">
+    <button class="tab-btn active" id="tabWarmup" onclick="switchMode('warmup')">
+      🎵 母音ウォーミングアップ
+    </button>
+    <button class="tab-btn" id="tabMain" onclick="switchMode('main')">
+      🚀 メイン：ローマ字タイピング
+    </button>
+  </div>
+
+  <!-- 1. 母音ウォーミングアップ モード -->
+  <div class="mode-section active" id="secWarmup">
+    <header>
+      <h1>🎵 母音リズムウォーミングアップ</h1>
+      <div class="status-bar">
+        <div class="speed-control">
+          <span>BPM:</span>
+          <button class="speed-btn" onclick="changeBPM(-20)">-</button>
+          <strong id="bpmDisplay" style="color:var(--accent); min-width:32px; text-align:center;">60</strong>
+          <button class="speed-btn" onclick="changeBPM(20)">+</button>
+        </div>
+        <span>熟練度: <strong id="warmupLevelDisplay" style="color:#f59e0b;">Lv.1</strong></span>
+      </div>
+    </header>
+
+    <div class="control-panel">
+      <div class="step-badge" id="stepBadge">ステップ 1 / 5</div>
+      <div class="target-display" id="warmupTargetDisplay"></div>
+
+      <div class="btn-group">
+        <button class="btn btn-next" onclick="nextWarmupStep()">→ (NEXT)</button>
+        <button class="btn btn-stop" id="stopBtn" onclick="toggleWarmupStop()">■ (STOP)</button>
+        <button class="btn btn-romaji" onclick="switchMode('main')">↗ (ROMA-JIへ)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. メインタイピング モード -->
+  <div class="mode-section" id="secMain">
+    <header>
+      <h1>🚀 メイン：ローマ字タイピング</h1>
+      <div class="status-bar">
+        <span>STEP: 
+          <select id="stepSelect" onchange="onStepChange(this.value)" style="background:#0f172a; color:var(--accent); border:1px solid #334155; border-radius:6px; padding:4px 8px; font-weight:bold;">
+            <option value="0">Step 1: 母音のみ</option>
+            <option value="1">Step 2: K行</option>
+            <option value="2">Step 3: S行</option>
+            <option value="3">Step 4: T行</option>
+            <option value="4">Step 5: N行 / H行</option>
+            <option value="5">Step 6: M行 / R行 / 他</option>
+            <option value="6">Step 7: 栗 / 桜 / 色</option>
+            <option value="7">Step 8: 生物・動物</option>
+            <option value="8">Step 9: 自然・風景</option>
+            <option value="9">Step 10: 時間・総合</option>
+          </select>
+        </span>
+      </div>
+    </header>
+
+    <div class="control-panel">
+      <div class="step-badge" id="mainWordBadge">問題 1 / 10</div>
+      <div class="target-display" id="mainTargetWord" style="font-size: 2.8rem;"></div>
+      <div id="mainTargetKana" style="font-size: 1.2rem; color: #94a3b8;"></div>
+      <div class="romaji-hint" id="mainRomajiDisplay"></div>
+
+      <div class="btn-group">
+        <button class="btn btn-next" onclick="nextMainWord()">つぎの問題 →</button>
+        <button class="btn btn-romaji" style="background:#334155;" onclick="switchMode('warmup')">🔄 ウォーミングアップへ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 共通ソフトキーボード -->
+  <div class="keyboard-block">
+    <div class="key-row">
+      <div class="key" data-key="Q">Q</div>
+      <div class="key" data-key="W">W</div>
+      <div class="key" data-key="E" data-sub="え">E<span class="key-sub">え</span></div>
+      <div class="key" data-key="R">R</div>
+      <div class="key" data-key="T">T</div>
+      <div class="key" data-key="Y">Y</div>
+      <div class="key" data-key="U" data-sub="う">U<span class="key-sub">う</span></div>
+      <div class="key" data-key="I" data-sub="い">I<span class="key-sub">い</span></div>
+      <div class="key" data-key="O" data-sub="お">O<span class="key-sub">お</span></div>
+      <div class="key" data-key="P">P</div>
+    </div>
+    <div class="key-row">
+      <div class="key" data-key="A" data-sub="あ">A<span class="key-sub">あ</span></div>
+      <div class="key" data-key="S">S</div>
+      <div class="key" data-key="D">D</div>
+      <div class="key" data-key="F">F</div>
+      <div class="key" data-key="G">G</div>
+      <div class="key" data-key="H">H</div>
+      <div class="key" data-key="J">J</div>
+      <div class="key" data-key="K">K</div>
+      <div class="key" data-key="L">L</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   メインモード用問題データ (STEPS_DATA Step 1〜10)
+   ========================================================= */
 const STEPS_DATA = [
   // Step 1: 母音のみ
   [
@@ -26,7 +395,7 @@ const STEPS_DATA = [
     { word: "置く", kana: "おく", patterns: ["OKU"] },
     { word: "書く", kana: "かく", patterns: ["KAKU"] }
   ],
-  // Step 3: S行 (SI / SHI の揺れ対応)
+  // Step 3: S行
   [
     { word: "寿司", kana: "すし", patterns: ["SUSI", "SUSHI"] },
     { word: "傘", kana: "かさ", patterns: ["KASA"] },
@@ -39,7 +408,7 @@ const STEPS_DATA = [
     { word: "坂", kana: "さか", patterns: ["SAKA"] },
     { word: "西瓜", kana: "すいか", patterns: ["SUIKA"] }
   ],
-  // Step 4: T行 (TITI/CHICHI, TI/CHI, TU/TSU の揺れ対応)
+  // Step 4: T行
   [
     { word: "父", kana: "ちち", patterns: ["TITI", "CHICHI", "TICHI", "CHITI"] },
     { word: "竹", kana: "たけ", patterns: ["TAKE"] },
@@ -52,7 +421,7 @@ const STEPS_DATA = [
     { word: "歌", kana: "うた", patterns: ["UTA"] },
     { word: "月", kana: "つき", patterns: ["TUKI", "TSUKI"] }
   ],
-  // Step 5: N行 / H行 (HU/FU の揺れ対応)
+  // Step 5: N行 / H行
   [
     { word: "猫", kana: "ねこ", patterns: ["NEKO"] },
     { word: "犬", kana: "いぬ", patterns: ["INU"] },
@@ -65,16 +434,368 @@ const STEPS_DATA = [
     { word: "服", kana: "ふく", patterns: ["HUKU", "FUKU"] },
     { word: "きのこ", kana: "きのこ", patterns: ["KINOKO"] }
   ],
-   // Step 6〜10 (仮データ)
+  // Step 6: M行 / R行 / 他
   [
-    { word: "雨", kana: "あめ", patterns: ["AME"] }, { word: "海", kana: "うみ", patterns: ["UMI"] },
-    { word: "桃", kana: "もも", patterns: ["MOMO"] }, { word: "空", kana: "そら", patterns: ["SORA"] },
-    { word: "森", kana: "もり", patterns: ["MORI"] }, { word: "猿", kana: "さる", patterns: ["SARU"] },
-    { word: "星", kana: "ほし", patterns: ["HOSI", "HOSHI"] }, { word: "花", kana: "はな", patterns: ["HANA"] },
-    { word: "耳", kana: "みみ", patterns: ["MIMI"] }, { word: "虫", kana: "むし", patterns: ["MUSI", "MUSHI"] }
+    { word: "雨", kana: "あめ", patterns: ["AME"] },
+    { word: "海", kana: "うみ", patterns: ["UMI"] },
+    { word: "桃", kana: "もも", patterns: ["MOMO"] },
+    { word: "空", kana: "そら", patterns: ["SORA"] },
+    { word: "森", kana: "もり", patterns: ["MORI"] },
+    { word: "猿", kana: "さる", patterns: ["SARU"] },
+    { word: "星", kana: "ほし", patterns: ["HOSI", "HOSHI"] },
+    { word: "花", kana: "はな", patterns: ["HANA"] },
+    { word: "耳", kana: "みみ", patterns: ["MIMI"] },
+    { word: "虫", kana: "むし", patterns: ["MUSI", "MUSHI"] }
   ],
-  [ { word: "栗", kana: "くり", patterns: ["KURI"] }, { word: "車", kana: "くるま", patterns: ["KURUMA"] }, { word: "桜", kana: "さくら", patterns: ["SAKURA"] }, { word: "城", kana: "しろ", patterns: ["SIRO", "SHIRO"] }, { word: "赤", kana: "あか", patterns: ["AKA"] }, { word: "黒", kana: "くろ", patterns: ["KURO"] }, { word: "白", kana: "しろ", patterns: ["SIRO", "SHIRO"] }, { word: "青", kana: "あお", patterns: ["AO"] }, { word: "黄色", kana: "きいろ", patterns: ["KIIRO"] }, { word: "彼", kana: "かれ", patterns: ["KARE"] } ],
-  [ { word: "鳥", kana: "とり", patterns: ["TORI"] }, { word: "魚", kana: "さかな", patterns: ["SAKANA"] }, { word: "馬", kana: "うま", patterns: ["UMA"] }, { word: "牛", kana: "うし", patterns: ["USI", "USHI"] }, { word: "狸", kana: "たぬき", patterns: ["TANUKI"] }, { word: "リス", kana: "りす", patterns: ["RISU"] }, { word: "カメ", kana: "かめ", patterns: ["KAME"] }, { word: "タコ", kana: "たこ", patterns: ["TAKO"] }, { word: "セミ", kana: "せみ", patterns: ["SEMI"] }, { word: "ハチ", kana: "はち", patterns: ["HATI", "HACHI"] } ],
-  [ { word: "山", kana: "やま", patterns: ["YAMA"] }, { word: "川", kana: "かわ", patterns: ["KAWA"] }, { word: "部屋", kana: "へや", patterns: ["HEYA"] }, { word: "海", kana: "うみ", patterns: ["UMI"] }, { word: "空", kana: "そら", patterns: ["SORA"] }, { word: "雲", kana: "くも", patterns: ["KUMO"] }, { word: "雨", kana: "あめ", patterns: ["AME"] }, { word: "雪", kana: "ゆき", patterns: ["YUKI"] }, { word: "天気", kana: "てんき", patterns: ["TENKI", "TENNKI"] }, { word: "平和", kana: "へいわ", patterns: ["HEIWA"] } ],
-  [ { word: "朝", kana: "あさ", patterns: ["ASA"] }, { word: "昼", kana: "ひる", patterns: ["HIRU"] }, { word: "夜", kana: "よる", patterns: ["YORU"] }, { word: "平野", kana: "へいや", patterns: ["HEIYA"] }, { word: "夏", kana: "なつ", patterns: ["NATU", "NATSU"] }, { word: "レタス", kana: "れたす", patterns: ["RETASU"] }, { word: "冬", kana: "ふゆ", patterns: ["HUYU", "FUYU"] }, { word: "運転", kana: "うんてん", patterns: ["UNTEN", "UNNTEN"] }, { word: "明日", kana: "あした", patterns: ["ASITA", "ASHITA"] }, { word: "夢", kana: "ゆめ", patterns: ["YUME"] } ]
+  // Step 7: 栗 / 桜 / 色
+  [
+    { word: "栗", kana: "くり", patterns: ["KURI"] },
+    { word: "車", kana: "くるま", patterns: ["KURUMA"] },
+    { word: "桜", kana: "さくら", patterns: ["SAKURA"] },
+    { word: "城", kana: "しろ", patterns: ["SIRO", "SHIRO"] },
+    { word: "赤", kana: "あか", patterns: ["AKA"] },
+    { word: "黒", kana: "くろ", patterns: ["KURO"] },
+    { word: "白", kana: "しろ", patterns: ["SIRO", "SHIRO"] },
+    { word: "青", kana: "あお", patterns: ["AO"] },
+    { word: "黄色", kana: "きいろ", patterns: ["KIIRO"] },
+    { word: "彼", kana: "かれ", patterns: ["KARE"] }
+  ],
+  // Step 8: 生物・動物
+  [
+    { word: "鳥", kana: "とり", patterns: ["TORI"] },
+    { word: "魚", kana: "さかな", patterns: ["SAKANA"] },
+    { word: "馬", kana: "うま", patterns: ["UMA"] },
+    { word: "牛", kana: "うし", patterns: ["USI", "USHI"] },
+    { word: "狸", kana: "たぬき", patterns: ["TANUKI"] },
+    { word: "リス", kana: "りす", patterns: ["RISU"] },
+    { word: "カメ", kana: "かめ", patterns: ["KAME"] },
+    { word: "タコ", kana: "たこ", patterns: ["TAKO"] },
+    { word: "セミ", kana: "せみ", patterns: ["SEMI"] },
+    { word: "ハチ", kana: "はち", patterns: ["HATI", "HACHI"] }
+  ],
+  // Step 9: 自然・風景
+  [
+    { word: "山", kana: "やま", patterns: ["YAMA"] },
+    { word: "川", kana: "かわ", patterns: ["KAWA"] },
+    { word: "部屋", kana: "へや", patterns: ["HEYA"] },
+    { word: "海", kana: "うみ", patterns: ["UMI"] },
+    { word: "空", kana: "そら", patterns: ["SORA"] },
+    { word: "雲", kana: "くも", patterns: ["KUMO"] },
+    { word: "雨", kana: "あめ", patterns: ["AME"] },
+    { word: "雪", kana: "ゆき", patterns: ["YUKI"] },
+    { word: "天気", kana: "てんき", patterns: ["TENKI", "TENNKI"] },
+    { word: "平和", kana: "へいわ", patterns: ["HEIWA"] }
+  ],
+  // Step 10: 時間・総合
+  [
+    { word: "朝", kana: "あさ", patterns: ["ASA"] },
+    { word: "昼", kana: "ひる", patterns: ["HIRU"] },
+    { word: "夜", kana: "よる", patterns: ["YORU"] },
+    { word: "平野", kana: "へいや", patterns: ["HEIYA"] },
+    { word: "夏", kana: "なつ", patterns: ["NATU", "NATSU"] },
+    { word: "レタス", kana: "れたす", patterns: ["RETASU"] },
+    { word: "冬", kana: "ふゆ", patterns: ["HUYU", "FUYU"] },
+    { word: "運転", kana: "うんてん", patterns: ["UNTEN", "UNNTEN"] },
+    { word: "明日", kana: "あした", patterns: ["ASITA", "ASHITA"] },
+    { word: "夢", kana: "ゆめ", patterns: ["YUME"] }
+  ]
 ];
+
+/* =========================================================
+   共通データ ＆ Web Speech / Audio API
+   ========================================================= */
+const VOWEL_MAP = { 'A': 'あ', 'I': 'い', 'U': 'う', 'E': 'え', 'O': 'お' };
+const keyHitCounts = { 'A':0, 'I':0, 'U':0, 'E':0, 'O':0 };
+
+let currentMode = 'warmup'; // 'warmup' or 'main'
+let audioCtx = null;
+
+function speakVowel(kana) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const uttr = new SpeechSynthesisUtterance(kana);
+    uttr.lang = 'ja-JP';
+    uttr.rate = 1.3;
+    uttr.pitch = 1.2;
+    window.speechSynthesis.speak(uttr);
+  }
+}
+
+function playBeatSound() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(110, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(35, audioCtx.currentTime + 0.12);
+  gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.12);
+}
+
+function playClickSound() {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(750, audioCtx.currentTime);
+  gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.04);
+}
+
+/* モード切り替え制御 */
+function switchMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.mode-section').forEach(s => s.classList.remove('active'));
+
+  if (mode === 'warmup') {
+    document.getElementById('tabWarmup').classList.add('active');
+    document.getElementById('secWarmup').classList.add('active');
+    loadWarmupStep(currentWarmupStepIdx);
+  } else {
+    document.getElementById('tabMain').classList.add('active');
+    document.getElementById('secMain').classList.add('active');
+    if (warmupTimerId) clearInterval(warmupTimerId);
+    initMainMode();
+  }
+}
+
+/* =========================================================
+   1. ウォーミングアップ モードのロジック
+   ========================================================= */
+const WARMUP_STEPS = [
+  { name: "ステップ 1（入門）", text: "ういういういうい", keys: ['U', 'I'] },
+  { name: "ステップ 2（混線対策）", text: "えいえいえいえい", keys: ['E', 'I'] },
+  { name: "ステップ 3（2音跳躍）", text: "ええおええええお", keys: ['E', 'O'] },
+  { name: "ステップ 4（4音連続）", text: "えいえいおうおう", keys: ['E', 'I', 'O', 'U'] },
+  { name: "ステップ 5（完成形）", text: "あえいうえおあお", keys: ['A', 'E', 'I', 'U', 'O'] }
+];
+
+let currentWarmupStepIdx = 0;
+let warmupPhraseItems = [];
+let isWarmupPlaying = true;
+let warmupCharIdx = 0;
+let bpm = 60;
+let warmupTimerId = null;
+
+function loadWarmupStep(idx) {
+  currentWarmupStepIdx = idx;
+  const stepData = WARMUP_STEPS[currentWarmupStepIdx];
+  
+  document.getElementById('stepBadge').innerText = `${stepData.name} / ${WARMUP_STEPS.length}`;
+  warmupPhraseItems = stepData.text.split('');
+  
+  const container = document.getElementById('warmupTargetDisplay');
+  container.innerHTML = "";
+  warmupPhraseItems.forEach((ch, i) => {
+    const span = document.createElement('span');
+    span.className = `target-char ${i === 0 ? 'active' : ''}`;
+    span.id = `warmup-char-${i}`;
+    span.innerText = ch;
+    container.appendChild(span);
+  });
+
+  updateActiveKeys(stepData.keys);
+  warmupCharIdx = 0;
+  restartWarmupLoop();
+}
+
+function startWarmupLoop() {
+  if (!isWarmupPlaying || currentMode !== 'warmup') return;
+  const interval = (60 / bpm) * 1000;
+  warmupTimerId = setInterval(() => {
+    playBeatSound();
+    highlightWarmupChar();
+    warmupCharIdx = (warmupCharIdx + 1) % warmupPhraseItems.length;
+  }, interval);
+}
+
+function restartWarmupLoop() {
+  if (warmupTimerId) clearInterval(warmupTimerId);
+  startWarmupLoop();
+}
+
+function highlightWarmupChar() {
+  document.querySelectorAll('#warmupTargetDisplay .target-char').forEach(c => c.classList.remove('active'));
+  const el = document.getElementById(`warmup-char-${warmupCharIdx}`);
+  if (el) el.classList.add('active');
+}
+
+function nextWarmupStep() {
+  loadWarmupStep((currentWarmupStepIdx + 1) % WARMUP_STEPS.length);
+}
+
+function toggleWarmupStop() {
+  const btn = document.getElementById('stopBtn');
+  if (isWarmupPlaying) {
+    clearInterval(warmupTimerId);
+    isWarmupPlaying = false;
+    btn.innerText = "▶ (START)";
+    btn.style.background = "#10b981";
+  } else {
+    isWarmupPlaying = true;
+    btn.innerText = "■ (STOP)";
+    btn.style.background = "#ef4444";
+    startWarmupLoop();
+  }
+}
+
+function changeBPM(delta) {
+  bpm = Math.max(40, Math.min(200, bpm + delta));
+  document.getElementById('bpmDisplay').innerText = bpm;
+  if (isWarmupPlaying) restartWarmupLoop();
+}
+
+/* =========================================================
+   2. メインタイピング モードのロジック
+   ========================================================= */
+let currentStepIdx = 0;
+let currentWordIdx = 0;
+let currentTypedString = "";
+let activePattern = "";
+
+function initMainMode() {
+  currentWordIdx = 0;
+  loadMainWord();
+}
+
+function onStepChange(stepIdx) {
+  currentStepIdx = parseInt(stepIdx, 10);
+  currentWordIdx = 0;
+  loadMainWord();
+}
+
+function loadMainWord() {
+  const stepList = STEPS_DATA[currentStepIdx];
+  const item = stepList[currentWordIdx];
+  currentTypedString = "";
+  
+  // デフォルト（画面表示用）のパターン
+  activePattern = item.patterns[0];
+
+  document.getElementById('mainWordBadge').innerText = `問題 ${currentWordIdx + 1} / ${stepList.length}`;
+  document.getElementById('mainTargetWord').innerText = item.word;
+  document.getElementById('mainTargetKana').innerText = item.kana;
+  
+  updateRomajiDisplay();
+
+  // 問題に含まれる全パターンから必要なキーを抽出してハイライト
+  const requiredKeys = new Set();
+  item.patterns.forEach(pat => {
+    for (let char of pat) requiredKeys.add(char);
+  });
+  updateActiveKeys(Array.from(requiredKeys));
+}
+
+function updateRomajiDisplay() {
+  const typedPart = activePattern.substring(0, currentTypedString.length);
+  const untypedPart = activePattern.substring(currentTypedString.length);
+
+  document.getElementById('mainRomajiDisplay').innerHTML = 
+    `<span class="romaji-typed">${typedPart}</span><span class="romaji-untyped">${untypedPart}</span>`;
+}
+
+function nextMainWord() {
+  const stepList = STEPS_DATA[currentStepIdx];
+  currentWordIdx++;
+  if (currentWordIdx >= stepList.length) {
+    alert(`🎉 Step ${currentStepIdx + 1} クリア！つぎのStepへ進みます。`);
+    currentStepIdx = (currentStepIdx + 1) % STEPS_DATA.length;
+    document.getElementById('stepSelect').value = currentStepIdx;
+    currentWordIdx = 0;
+  }
+  loadMainWord();
+}
+
+/* 共通キーボードハイライト処理 */
+function updateActiveKeys(activeKeysArray) {
+  document.querySelectorAll('.key').forEach(k => {
+    k.classList.remove('active-target');
+    if (activeKeysArray && activeKeysArray.includes(k.dataset.key)) {
+      k.classList.add('active-target');
+    }
+  });
+}
+
+/* =========================================================
+   3. 共通打鍵イベント制御
+   ========================================================= */
+window.addEventListener('keydown', (e) => {
+  const keyUpper = e.key.toUpperCase();
+  const keyEl = document.querySelector(`.key[data-key="${keyUpper}"]`);
+
+  if (!keyEl) return;
+
+  keyEl.classList.add('pressed');
+  setTimeout(() => keyEl.classList.remove('pressed'), 150);
+  playClickSound();
+
+  if (currentMode === 'warmup') {
+    // --- ウォーミングアップモードの判定 ---
+    const prevIdx = (warmupCharIdx - 1 + warmupPhraseItems.length) % warmupPhraseItems.length;
+    const currIdx = warmupCharIdx;
+    const nextIdx = (warmupCharIdx + 1) % warmupPhraseItems.length;
+
+    const validKanas = [
+      warmupPhraseItems[prevIdx],
+      warmupPhraseItems[currIdx],
+      warmupPhraseItems[nextIdx]
+    ];
+
+    const pressedKana = VOWEL_MAP[keyUpper];
+
+    if (pressedKana && validKanas.includes(pressedKana)) {
+      speakVowel(pressedKana);
+      keyHitCounts[keyUpper]++;
+      updateKeyLevel(keyEl, keyHitCounts[keyUpper]);
+    }
+  } else {
+    // --- メインタイピングモードの判定 ---
+    const item = STEPS_DATA[currentStepIdx][currentWordIdx];
+    const testString = currentTypedString + keyUpper;
+
+    // 入力可能なパターンの判定 (例: SI / SHI 双方への追従)
+    const matchedPatterns = item.patterns.filter(p => p.startsWith(testString));
+
+    if (matchedPatterns.length > 0) {
+      if (VOWEL_MAP[keyUpper]) {
+        speakVowel(VOWEL_MAP[keyUpper]);
+      }
+      currentTypedString = testString;
+      activePattern = matchedPatterns[0]; // 打鍵に合致するパターンに表示を更新
+      updateRomajiDisplay();
+
+      if (currentTypedString === activePattern) {
+        setTimeout(() => {
+          nextMainWord();
+        }, 120);
+      }
+    }
+  }
+});
+
+function updateKeyLevel(el, count) {
+  el.classList.remove('lvl-1', 'lvl-2', 'lvl-3');
+  if (count >= 15) el.classList.add('lvl-3');
+  else if (count >= 8) el.classList.add('lvl-2');
+  else if (count >= 3) el.classList.add('lvl-1');
+
+  const total = Object.values(keyHitCounts).reduce((a, b) => a + b, 0);
+  if (total >= 40) document.getElementById('warmupLevelDisplay').innerText = "Lv.3 (マスター)";
+  else if (total >= 15) document.getElementById('warmupLevelDisplay').innerText = "Lv.2 (いい感じ)";
+}
+
+window.onload = () => {
+  loadWarmupStep(0);
+};
+</script>
+</body>
+</html>
