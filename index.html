@@ -656,38 +656,74 @@ const BASIC_STEPS_DATA = [
 const APPLIED_PANELS = [
   // ジャンル1: 体と健康
   { genreIdx: 0, genreName: "体と健康", pts: 10, items: [
-      { word: "骨", kana: "ほね", patterns: ["HONE"] }, { word: "筋肉", kana: "きんにく", patterns: ["KINNIKU", "KINNNIKU"] }, { word: "心臓", kana: "しんぞう", patterns: ["SINZOU", "SHINZOU"] }, { word: "靭帯", kana: "じんたい", patterns: ["JINTAI", "ZINTAI"] }, { word: "直腸", kana: "ちょくちょう", patterns: ["TYOKUTYOU", "CHOKUCHOU"] }
+      { word: "骨", kana: "ほね", patterns: ["HONE"] },
+      { word: "筋肉", kana: "きんにく", patterns: ["KINNIKU", "KINNNIKU"] },
+      { word: "心臓", kana: "しんぞう", patterns: ["SINZOU", "SHINZOU", "SINJOU", "SHINJOU"] },
+      { word: "靭帯", kana: "じんたい", patterns: ["JINTAI", "ZINTAI", "JINTAI", "ZINNTI"] },
+      { word: "直腸", kana: "ちょくちょう", patterns: ["TYOKUTYOU", "CHOKUCHOU", "CYOKUCYOU", "TYOKUCHOU", "CHOKUTYOU"] }
   ]},
   { genreIdx: 0, genreName: "体と健康", pts: 30, items: [
-      { word: "血液", kana: "けつえき", patterns: ["KETUEKI", "KETSUEKI"] }, { word: "ワクチン", kana: "わくちん", patterns: ["WAKUTIN", "WAKUCHIN"] }, { word: "ピロリ菌", kana: "ぴろりきん", patterns: ["PIRORIKIN", "PIRORIKINN"] }, { word: "免疫", kana: "めんえき", patterns: ["MENEKI", "MENNEKI"] }, { word: "マメに マスクを", kana: "まめに ますくを", patterns: ["MAMENI MASUKUWO"] }
+      { word: "血液", kana: "けつえき", patterns: ["KETUEKI", "KETSUEKI"] },
+      { word: "ワクチン", kana: "わくちん", patterns: ["WAKUTIN", "WAKUCHIN"] },
+      { word: "ピロリ菌", kana: "ぴろりきん", patterns: ["PIRORIKIN", "PIRORIKINN"] },
+      { word: "免疫", kana: "めんえき", patterns: ["MENEKI", "MENNEKI"] },
+      { word: "マメにマスクをつける", kana: "まめにますくをつける", patterns: ["MAMENIMASUKUWOTUKERU", "MAMENIMASUKUWOTSUKERU"] }
   ]},
   { genreIdx: 0, genreName: "体と健康", pts: 50, items: [
-      { word: "手指消毒！", kana: "しゅししょうどく！", patterns: ["SYUSISYOUDOKU!", "SHUSHISHOUDOKU!"] }, { word: "血中酸素濃度", kana: "けっちゅうさんそのうど", patterns: ["KETTYUUSANSONOUDO", "KECCHUUSANSONOUDO"] }, { word: "１１９ばんしてください！", kana: "119ばんしてください！", patterns: ["119BANNSITEKUDASAI!", "119BANSHITEKUDASAI!"] }, { word: "「命」の不思議", kana: "「いのち」の ふしぎ", patterns: [" [INOTI] NO HUSIGI", "[INOTHI] NO HUSHIGI"] }, { word: "健康が一番！", kana: "けんこうが いちばん！", patterns: ["KENKOUGA ICHIBAN!", "KENNKOUGA IZIBAN!"] }
+      { word: "手指消毒！", kana: "しゅししょうどく！", patterns: ["SYUSISYOUDOKU!", "SHUSHISHOUDOKU!", "SYUSISHOUDOKU!", "SHUSHISYOUDOKU!"] },
+      { word: "血中酸素濃度", kana: "けっちゅうさんそのうど", patterns: ["KETTYUUSANSONOUDO", "KECCHUUSANSONOUDO", "KETTYUUSANNSONOUDO", "KECCHUUSANNSONOUDO"] },
+      { word: "119ばんしてください！", kana: "119ばんしてください！", patterns: ["119BANSITEKUDASAI!", "119BANNSITEKUDASAI!", "119BANSHITEKUDASAI!", "119BANNSHITEKUDASAI!", "119BANSHITIKUDASAI!"] },
+      { word: "「命」の不思議", kana: "「いのち」のふしぎ", patterns: ["[INOTI]NOHUSIGI", "[INOCHI]NOHUSHIGI", "[INOTHI]NOHUSIGI", "[INOCHI]NOHUSIGI", "[INOCHI]NOFUSIGI", "[INOCHI]NOFUSHIGI"] },
+      { word: "健康が一番！", kana: "けんこうがいちばん！", patterns: ["KENKOUGAITIBAN!", "KENKOUGAICHIBAN!", "KENNKOUGAITIBAN!", "KENNKOUGAICHIBAN!", "KENKOUGAIZIBAN!", "KENKOUGAIJIBAN!"] }
   ]},
 
   // ジャンル2: 社会とお金
   { genreIdx: 1, genreName: "社会とお金", pts: 10, items: [
-      { word: "お金", kana: "おかね", patterns: ["OKANE"] }, { word: "銀行", kana: "ぎんこう", patterns: ["GINKOU", "GINNKOU"] }, { word: "お札", kana: "おさつ", patterns: ["OSATU", "OSATSU"] }, { word: "仕事", kana: "しごと", patterns: ["SIGOTO", "SHIGOTO"] }, { word: "価値", kana: "かち", patterns: ["KATI", "KACHI"] }
+      { word: "お金", kana: "おかね", patterns: ["OKANE"] },
+      { word: "銀行", kana: "ぎんこう", patterns: ["GINKOU", "GINNKOU"] },
+      { word: "お札", kana: "おさつ", patterns: ["OSATU", "OSATSU"] },
+      { word: "仕事", kana: "しごと", patterns: ["SIGOTO", "SHIGOTO"] },
+      { word: "価値", kana: "かち", patterns: ["KATI", "KACHI"] }
   ]},
   { genreIdx: 1, genreName: "社会とお金", pts: 30, items: [
-      { word: "会社", kana: "かいしゃ", patterns: ["KAISYA", "KAISHA"] }, { word: "キャッシュレス", kana: "きゃっしゅれす", patterns: ["KYASSYURESUS", "KYASSHURESU"] }, { word: "消費税", kana: "しょうひぜい", patterns: ["SYOUHIZEI", "SHOUHIZEI"] }, { word: "コード決済", kana: "こーどけっさい", patterns: ["KO-DOKESSAI", "KO-DOKETUSAI"] }, { word: "ノーベル賞", kana: "のーべるしょう", patterns: ["NO-BERUSYOU", "NO-BERUSHOU"] }
+      { word: "会社", kana: "かいしゃ", patterns: ["KAISYA", "KAISHA"] },
+      { word: "キャッシュレス", kana: "きゃっしゅれす", patterns: ["KYASSYURESU", "KYASSHURESU", "KYASSURESU"] },
+      { word: "消費税", kana: "しょうひぜい", patterns: ["SYOUHIZEI", "SHOUHIZEI"] },
+      { word: "コード決済", kana: "こーどけっさい", patterns: ["KO-DOKESSAI", "KO-DOKETUSAI"] },
+      { word: "ノーベル賞", kana: "のーべるしょう", patterns: ["NO-BERUSYOU", "NO-BERUSHOU"] }
   ]},
   { genreIdx: 1, genreName: "社会とお金", pts: 50, items: [
-      { word: "価値を交換する", kana: "かちを こうかんする", patterns: ["KATIWO KOUKANSURU", "KACHIWO KOUKANNSSURU"] }, { word: "100円の 「おもみ」", kana: "100えんの 「おもみ」", patterns: ["100ENNO [OMOMI]", "100ENNO [OMOMI]"] }, { word: "「モノ」と 「サービス」", kana: "「もの」と 「さーびす」", patterns: ["[MONO] TO [SA-BISU]"] }, { word: "社会の仕組み", kana: "しゃかいの しくみ", patterns: ["SYAKAINO SIKUMI", "SHAKAINO SHIKUMI"] }, { word: "未来への 「投資」！", kana: "みらいへの 「とうし」！", patterns: ["MIRAIHENO [TOUSI]!", "MIRAIHENO [TOUSHI]!"] }
+      { word: "価値を交換する", kana: "かちをこうかんする", patterns: ["KATIWOKOUKANSURU", "KACHIWOKOUKANSURU", "KATIWOKOUKANNSURU", "KACHIWOKOUKANNSURU"] },
+      { word: "100円の「おもみ」", kana: "100えんの「おもみ」", patterns: ["100ENNO[OMOMI]", "100ENNNO[OMOMI]"] },
+      { word: "「モノ」と「サービス」", kana: "「もの」と「さーびす」", patterns: ["[MONO]TO[SA-BISU]"] },
+      { word: "社会の仕組み", kana: "しゃかいのしくみ", patterns: ["SYAKAINOSIKUMI", "SHAKAINOSHIKUMI", "SYAKAINOSHIKUMI", "SHAKAINOSIKUMI"] },
+      { word: "未来への「投資」！", kana: "みらいへの「とうし」！", patterns: ["MIRAIHENO[TOUSI]!", "MIRAIHENO[TOUSHI]!"] }
   ]},
 
   // ジャンル3: 自然と生き物
   { genreIdx: 2, genreName: "自然と生き物", pts: 10, items: [
-      { word: "メダカ", kana: "めだか", patterns: ["MEDAKA"] }, { word: "スズメ", kana: "すずめ", patterns: ["SUZUME"] }, { word: "テントウムシ", kana: "てんとうむし", patterns: ["TENTOUMUSI", "TENTOUMUSHI"] }, { word: "地球", kana: "ちきゅう", patterns: ["TIKYUU", "CHIKYUU"] }, { word: "太陽系", kana: "たいようけい", patterns: ["TAIYOUKEI"] }
+      { word: "メダカ", kana: "めだか", patterns: ["MEDAKA"] },
+      { word: "スズメ", kana: "すずめ", patterns: ["SUZUME"] },
+      { word: "テントウムシ", kana: "てんとうむし", patterns: ["TENTOUMUSI", "TENTOUMUSHI"] },
+      { word: "地球", kana: "ちきゅう", patterns: ["TIKYUU", "CHIKYUU"] },
+      { word: "太陽系", kana: "たいようけい", patterns: ["TAIYOUKEI"] }
   ]},
   { genreIdx: 2, genreName: "自然と生き物", pts: 30, items: [
-      { word: "カピバラ", kana: "かぴばら", patterns: ["KAPIBARA"] }, { word: "ダイオウグソクムシ", kana: "だいおうぐそくむし", patterns: ["DAIOUGUSOKUMUSI", "DAIOUGUSOKUMUSHI"] }, { word: "シーラカンス", kana: "しーらかんす", patterns: ["SI-RAKANSU", "SHI-RAKANSU"] }, { word: "超伝導", kana: "ちょうでんどう", patterns: ["TYOUDENDOU", "CHOUDENDOU"] }, { word: "シジュウカラ", kana: "しじゅうから", patterns: ["SIZYUUKARA", "SHIJUUKARA"] }
+      { word: "カピバラ", kana: "かぴばら", patterns: ["KAPIBARA"] },
+      { word: "ダイオウグソクムシ", kana: "だいおうぐそくむし", patterns: ["DAIOUGUSOKUMUSI", "DAIOUGUSOKUMUSHI"] },
+      { word: "シーラカンス", kana: "しーらかんす", patterns: ["SI-RAKANSU", "SHI-RAKANSU"] },
+      { word: "超伝導", kana: "ちょうでんどう", patterns: ["TYOUDENDOU", "CHOUDENDOU"] },
+      { word: "シジュウカラ", kana: "しじゅうから", patterns: ["SIZYUUKARA", "SHIJUUKARA", "SIJIUUKARA", "SHIJIUUKARA"] }
   ]},
   { genreIdx: 2, genreName: "自然と生き物", pts: 50, items: [
-      { word: "命のつながり", kana: "いのちの つながり", patterns: ["INOTINO TSUNAGARI", "INOTHINO TSUNAGARI"] }, { word: "ヒガシニホンアマガエル", kana: "ひがしにほんあまがえる", patterns: ["HIGASINIHONAMAGAERU", "HIGASHINIHONAMAGAERU"] }, { word: "自然の 「めぐみ」", kana: "しぜんの 「めぐみ」", patterns: ["SIZENNO [MEGUMI]", "SHIZENNO [MEGUMI]"] }, { word: "「生態系」を守れるか？", kana: "「せいたいけい」をまもれるか？", patterns: ["[SEITAIKEI]WOMAMORERUKA?", "[SEITAIKEI]WOMAMORERUKA?"] }, { word: "ばくはつ！ 好奇心", kana: "ばくはつ！ こうきしん", patterns: ["BAKUHATSU! KOUKISIN", "BAKUHATSU! KOUKISHIN"] }
+      { word: "命のつながり", kana: "いのちのつながり", patterns: ["INOTINOTSUNAGARI", "INOCHINOTSUNAGARI", "INOTINOTUNAGARI", "INOCHINOTUNAGARI"] },
+      { word: "ヒガシニホンアマガエル", kana: "ひがしにほんあまがえる", patterns: ["HIGASINIHONAMAGAERU", "HIGASHINIHONAMAGAERU", "HIGASINIHONNAMAGAERU", "HIGASHINIHONNAMAGAERU"] },
+      { word: "自然の「めぐみ」", kana: "しぜんの「めぐみ」", patterns: ["SIZENNO[MEGUMI]", "SHIZENNO[MEGUMI]"] },
+      { word: "「生態系」を守れるか？", kana: "「せいたいけい」をまもれるか？", patterns: ["[SEITAIKEI]WOMAMORERUKA?"] },
+      { word: "ばくはつ！好奇心", kana: "ばくはつ！こうきしん", patterns: ["BAKUHATSU!KOUKISIN", "BAKUHATSU!KOUKISHIN", "BAKUHATU!KOUKISIN", "BAKUHATU!KOUKISHIN"] }
   ]}
 ];
-
+  
 const GOJUON_MATRIX = [
   ["あ","か","さ","た","な","は","ま","や","ら","わ"],
   ["い","き","し","ち","に","ひ","み","","り",""],
