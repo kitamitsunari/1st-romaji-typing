@@ -109,7 +109,7 @@
       box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
     }
 
-    /* 上段：2列配置（左：出題カード ／ 右：50音マップ・クイズ盤） */
+    /* 上段：2列配置 */
     .top-section {
       display: flex;
       gap: 10px;
@@ -311,32 +311,7 @@
       align-items: center;
     }
 
-    /* デジタル表示板エリア（スコア・ハイスコア表示） */
-    .score-board-digital {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #0f172a;
-      color: #38bdf8;
-      padding: 3px 10px;
-      border-radius: 8px;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.85rem;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-    }
-
-    .score-item {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .score-value {
-      font-weight: bold;
-      color: #facc15;
-      font-size: 1rem;
-    }
-
+    /* 50音マップ */
     .gojuon-grid {
       flex: 1;
       display: grid;
@@ -355,6 +330,12 @@
       font-weight: bold;
       background-color: var(--color-unopened);
       transition: background-color 0.4s, transform 0.2s;
+    }
+
+    .grid-cell.pulse {
+      transform: scale(1.25);
+      box-shadow: 0 0 10px rgba(250, 204, 21, 0.8);
+      z-index: 10;
     }
 
     .status-0 { background-color: var(--color-unopened); color: #94a3b8; }
@@ -432,30 +413,38 @@
     }
     .btn-reset:hover { opacity: 0.85; background: #ef4444; }
 
-    /* 下段：共通 拡張4段 QWERTYキーボード */
+    /* 下段：共通 拡張4段 QWERTYキーボード ＋ 右側「タッチ」デジタル掲示板 */
     .keyboard-card {
       height: 46%;
       width: 100%;
       background: var(--card-bg);
       border-radius: 12px;
-      padding: 12px 16px;
+      padding: 10px 14px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.05);
       border: 1px solid var(--card-border);
       display: flex;
-      flex-direction: column;
-      justify-content: center;
+      flex-direction: row; /* 横並び配置 */
+      justify-content: space-between;
       align-items: center;
-      gap: 6px;
+      gap: 12px;
       flex-shrink: 0;
       transition: border-color 0.4s ease;
     }
 
-    .kb-row { display: flex; gap: 6px; }
+    .keyboard-keys-area {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      align-items: center;
+      flex: 1;
+    }
+
+    .kb-row { display: flex; gap: 5px; }
 
     .key {
-      min-width: 48px;
-      height: 48px;
-      padding: 0 6px;
+      min-width: 44px;
+      height: 46px;
+      padding: 0 5px;
       background: var(--key-bg);
       border-radius: 8px;
       display: flex;
@@ -463,14 +452,14 @@
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       box-shadow: 0 3px 0 #cbd5e1;
       transition: background-color 0.1s, transform 0.1s;
       cursor: pointer;
       position: relative;
     }
 
-    .key.key-wide { min-width: 78px; font-size: 0.9rem; }
+    .key.key-wide { min-width: 70px; font-size: 0.85rem; }
 
     .key.active {
       background: var(--key-active) !important;
@@ -480,12 +469,51 @@
     }
 
     .key-sub {
-      font-size: 0.65rem;
+      font-size: 0.6rem;
       opacity: 0.85;
       margin-top: -2px;
     }
 
-    /* モーダルダイアログ（クリア・ハイスコア祝福） */
+    /* 右端：7セグ風「タッチ」数デジタル掲示板 */
+    .touch-counter-panel {
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 120px;
+      height: 100%;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+      flex-shrink: 0;
+    }
+
+    .touch-counter-title {
+      color: #94a3b8;
+      font-size: 0.72rem;
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+
+    .touch-counter-value {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #38bdf8;
+      text-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+      letter-spacing: 1px;
+    }
+
+    .touch-counter-unit {
+      color: #facc15;
+      font-size: 0.75rem;
+      font-weight: bold;
+      margin-top: 2px;
+    }
+
+    /* モーダルダイアログ */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
@@ -603,7 +631,7 @@
 
     </div>
 
-    <!-- 上段右：共通エリア -->
+    <!-- 上段右：共通エリア（50音マップ／クイズ盤） -->
     <div class="bottom-card" id="bottomCard">
       <!-- 基礎用：50音マップ -->
       <div id="bottomBasic" style="display:none; flex-direction:column; height:100%;">
@@ -617,29 +645,32 @@
         <div class="gojuon-grid" id="gojuonGrid"></div>
       </div>
 
-      <!-- 応用用：クイズグランプリ選択盤 ＆ デジタル表示板 -->
+      <!-- 応用用：クイズグランプリ選択盤 -->
       <div id="bottomApplied" style="display:none; flex-direction:column; height:100%;">
         <div class="quiz-board-header">
           <span>🏆 クイズグランプリ パネル選択</span>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <div class="score-board-digital" id="scoreDigitalBoard">
-              <div class="score-item">SCORE:<span class="score-value" id="currentScoreDisplay">0</span>pt</div>
-              <div class="score-item">👑BEST:<span class="score-value" id="highScoreDisplay">0</span>pt</div>
-            </div>
-            <button class="btn-reset" onclick="resetData()">リセット</button>
-          </div>
+          <button class="btn-reset" onclick="resetData()">リセット</button>
         </div>
         <div class="quiz-matrix" id="quizMatrix"></div>
       </div>
     </div>
   </div>
 
-  <!-- 下段：共通 拡張4段 QWERTYキーボード -->
+  <!-- 下段：共通 拡張4段 QWERTYキーボード ＋ デジタル「タッチ」掲示板 -->
   <div class="keyboard-card" id="keyboard">
-    <div class="kb-row" id="row0"></div>
-    <div class="kb-row" id="row1"></div>
-    <div class="kb-row" id="row2"></div>
-    <div class="kb-row" id="row3"></div>
+    <div class="keyboard-keys-area">
+      <div class="kb-row" id="row0"></div>
+      <div class="kb-row" id="row1"></div>
+      <div class="kb-row" id="row2"></div>
+      <div class="kb-row" id="row3"></div>
+    </div>
+
+    <!-- 右端 7セグ風デジタル表示板 -->
+    <div class="touch-counter-panel">
+      <div class="touch-counter-title">正解打鍵数</div>
+      <div class="touch-counter-value" id="touchCounterDisplay">0000</div>
+      <div class="touch-counter-unit">タッチ</div>
+    </div>
   </div>
 </div>
 
@@ -648,7 +679,7 @@
   <div class="modal-card">
     <h2 id="modalTitle">👑 グランプリ達成！ 👑</h2>
     <p id="modalMessage">おめでとうございます！<br>すべてのクイズパネルをクリアし、見事タイピングマスターになりました！</p>
-    <button class="modal-btn" onclick="closeModal()">挑戦をつづける</button>
+    <button class="modal-btn" id="modalBtn" onclick="closeModal()">挑戦をつづける</button>
   </div>
 </div>
 
@@ -684,7 +715,6 @@ const BASIC_STEPS_DATA = [
 ];
 
 const APPLIED_PANELS = [
-  // 体と健康
   { genreIdx: 0, genreName: "体と健康", pts: 10, items: [
       { word: "骨", kana: "ほね", patterns: ["HONE"] },
       { word: "筋肉", kana: "きんにく", patterns: ["KINNIKU", "KINNNIKU"] },
@@ -706,8 +736,6 @@ const APPLIED_PANELS = [
       { word: "「命」の不思議", kana: "「いのち」のふしぎ", patterns: ["[INOTI]NOHUSIGI", "[INOCHI]NOHUSHIGI", "[INOTHI]NOHUSIGI", "[INOCHI]NOHUSIGI", "[INOCHI]NOFUSIGI", "[INOCHI]NOFUSHIGI"] },
       { word: "健康が一番！", kana: "けんこうがいちばん！", patterns: ["KENKOUGAITIBAN!", "KENKOUGAICHIBAN!", "KENNKOUGAITIBAN!", "KENNKOUGAICHIBAN!", "KENKOUGAIZIBAN!", "KENKOUGAIJIBAN!"] }
   ]},
-
-  // 社会とお金
   { genreIdx: 1, genreName: "社会とお金", pts: 10, items: [
       { word: "お金", kana: "おかね", patterns: ["OKANE"] },
       { word: "銀行", kana: "ぎんこう", patterns: ["GINKOU", "GINNKOU"] },
@@ -729,8 +757,6 @@ const APPLIED_PANELS = [
       { word: "社会の仕組み", kana: "しゃかいのしくみ", patterns: ["SYAKAINOSIKUMI", "SHAKAINOSHIKUMI", "SYAKAINOSHIKUMI", "SHAKAINOSIKUMI"] },
       { word: "未来への「投資」！", kana: "みらいへの「とうし」！", patterns: ["MIRAIHENO[TOUSI]!", "MIRAIHENO[TOUSHI]!"] }
   ]},
-
-  // 自然と生き物
   { genreIdx: 2, genreName: "自然と生き物", pts: 10, items: [
       { word: "メダカ", kana: "めだか", patterns: ["MEDAKA"] },
       { word: "スズメ", kana: "すずめ", patterns: ["SUZUME"] },
@@ -795,11 +821,12 @@ let userProgress = {
   basicClears: [0,0,0,0,0,0,0,0,0,0], 
   warmupClears: [0,0,0,0,0],
   appliedClears: [false,false,false,false,false,false,false,false,false],
-  highScore: 0
+  highScore: 0,
+  totalTouches: 0
 };
 
 try {
-  const saved = localStorage.getItem('typing_app_grandprix_v2');
+  const saved = localStorage.getItem('typing_app_grandprix_v3');
   if (saved) {
     const parsed = JSON.parse(saved);
     if (parsed.gojuon) userProgress.gojuon = parsed.gojuon;
@@ -807,6 +834,7 @@ try {
     if (parsed.warmupClears) userProgress.warmupClears = parsed.warmupClears;
     if (parsed.appliedClears) userProgress.appliedClears = parsed.appliedClears;
     if (parsed.highScore !== undefined) userProgress.highScore = parsed.highScore;
+    if (parsed.totalTouches !== undefined) userProgress.totalTouches = parsed.totalTouches;
   }
 } catch(e) {}
 
@@ -822,46 +850,43 @@ function playAudioSE(type) {
   const now = audioCtx.currentTime;
 
   if (type === 'correct') {
-    // 正解：チャリン音（高音金属音）
     const osc1 = audioCtx.createOscillator();
     const osc2 = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
 
     osc1.type = 'sine';
     osc2.type = 'triangle';
-    osc1.frequency.setValueAtTime(1760, now); // A6
-    osc2.frequency.setValueAtTime(2637, now); // E7
+    osc1.frequency.setValueAtTime(1760, now);
+    osc2.frequency.setValueAtTime(2637, now);
 
-    gain.gain.setValueAtTime(0.3, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
 
     osc1.connect(gain);
     osc2.connect(gain);
     gain.connect(audioCtx.destination);
 
     osc1.start(now); osc2.start(now);
-    osc1.stop(now + 0.12); osc2.stop(now + 0.12);
+    osc1.stop(now + 0.1); osc2.stop(now + 0.1);
 
   } else if (type === 'incorrect') {
-    // 不正解：ブー音（低音Sawtooth）
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
 
     osc.type = 'sawtooth';
     osc.frequency.setValueAtTime(120, now);
-    osc.frequency.linearRampToValueAtTime(80, now + 0.18);
+    osc.frequency.linearRampToValueAtTime(80, now + 0.15);
 
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
 
     osc.connect(gain);
     gain.connect(audioCtx.destination);
 
     osc.start(now);
-    osc.stop(now + 0.18);
+    osc.stop(now + 0.15);
 
   } else if (type === 'wordClear') {
-    // 設問クリア：ピロリン♪
     [1046.5, 1318.5].forEach((freq, idx) => {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
@@ -876,7 +901,6 @@ function playAudioSE(type) {
     });
 
   } else if (type === 'panelClear') {
-    // パネルクリア：和音ファンファーレ
     [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
@@ -891,7 +915,6 @@ function playAudioSE(type) {
     });
 
   } else if (type === 'allClear') {
-    // 全クリア：ファンファーレ
     const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98];
     notes.forEach((freq, idx) => {
       const osc = audioCtx.createOscillator();
@@ -909,7 +932,7 @@ function playAudioSE(type) {
 }
 
 /* =========================================================
-   3. パーティクル視覚効果 (コイン飛翔 / 落下)
+   3. パーティクル視覚効果 (キー ➔ 50音パネル/デジタル板への飛翔)
    ========================================================= */
 const particles = [];
 let canvas, ctx;
@@ -927,14 +950,35 @@ function resizeCanvas() {
   canvas.height = window.innerHeight;
 }
 
-function spawnCoinParticle(startX, startY, isGold, isSuccess) {
-  const targetBoard = document.getElementById('scoreDigitalBoard');
-  const rect = targetBoard ? targetBoard.getBoundingClientRect() : { left: window.innerWidth - 100, top: 20, width: 50, height: 20 };
-  const targetX = rect.left + rect.width / 2;
-  const targetY = rect.top + rect.height / 2;
+/* 50音マップから指定ひらがなDOMを取得するヘルパー */
+function getGojuonCellElByChar(targetKana) {
+  const cells = document.querySelectorAll('.grid-cell');
+  for (let cell of cells) {
+    if (cell.innerText === targetKana) return cell;
+  }
+  return null;
+}
+
+function spawnCoinParticle(startX, startY, targetKana, isSuccess) {
+  let targetX, targetY;
+  let targetCellEl = null;
+
+  if (targetKana && currentAppMode === 'basic') {
+    targetCellEl = getGojuonCellElByChar(targetKana);
+  }
+
+  if (targetCellEl) {
+    const rect = targetCellEl.getBoundingClientRect();
+    targetX = rect.left + rect.width / 2;
+    targetY = rect.top + rect.height / 2;
+  } else {
+    const counterPanel = document.querySelector('.touch-counter-panel');
+    const rect = counterPanel ? counterPanel.getBoundingClientRect() : { left: window.innerWidth - 80, top: window.innerHeight - 80, width: 40, height: 40 };
+    targetX = rect.left + rect.width / 2;
+    targetY = rect.top + rect.height / 2;
+  }
 
   if (isSuccess) {
-    // 正解：飛んで表示板へ吸い込まれるコイン
     particles.push({
       x: startX,
       y: startY,
@@ -943,14 +987,14 @@ function spawnCoinParticle(startX, startY, isGold, isSuccess) {
       targetX: targetX,
       targetY: targetY,
       progress: 0,
-      speed: 0.04 + Math.random() * 0.02,
-      size: isGold ? 12 : 9,
-      color: isGold ? '#facc15' : '#cbd5e1',
+      speed: 0.05 + Math.random() * 0.02,
+      size: 10,
+      color: '#facc15',
       isSuccess: true,
-      curveOffset: (Math.random() - 0.5) * 150
+      targetCellEl: targetCellEl,
+      curveOffset: (Math.random() - 0.5) * 120
     });
   } else {
-    // 不正解：ポロッと落下する赤い破片コイン
     for (let i = 0; i < 3; i++) {
       particles.push({
         x: startX + (Math.random() - 0.5) * 20,
@@ -958,7 +1002,7 @@ function spawnCoinParticle(startX, startY, isGold, isSuccess) {
         vx: (Math.random() - 0.5) * 4,
         vy: -2 - Math.random() * 3,
         gravity: 0.3,
-        size: 8,
+        size: 7,
         color: '#ef4444',
         alpha: 1.0,
         isSuccess: false
@@ -976,13 +1020,18 @@ function updateParticles() {
     if (p.isSuccess) {
       p.progress += p.speed;
       if (p.progress >= 1) {
+        // 到達時：該当50音パネルを「ピカッ」とパルス発光
+        if (p.targetCellEl) {
+          p.targetCellEl.classList.add('pulse');
+          setTimeout(() => p.targetCellEl.classList.remove('pulse'), 300);
+        }
         particles.splice(i, 1);
         continue;
       }
-      // ベジェ曲線軌道
+
       const t = p.progress;
       const controlX = (p.startX + p.targetX) / 2 + p.curveOffset;
-      const controlY = Math.min(p.startY, p.targetY) - 80;
+      const controlY = Math.min(p.startY, p.targetY) - 60;
 
       p.x = (1 - t) * (1 - t) * p.startX + 2 * (1 - t) * t * controlX + t * t * p.targetX;
       p.y = (1 - t) * (1 - t) * p.startY + 2 * (1 - t) * t * controlY + t * t * p.targetY;
@@ -992,13 +1041,11 @@ function updateParticles() {
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
 
-      // キラッと光る縁取り
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2;
       ctx.stroke();
 
     } else {
-      // 落下粒子
       p.x += p.vx;
       p.y += p.vy;
       p.vy += p.gravity;
@@ -1030,7 +1077,7 @@ function init() {
   createKeyboard();
   renderGojuonGrid();
   renderQuizMatrix();
-  updateDigitalScoreDisplay();
+  updateTouchCounterDisplay();
   switchMode('warmup');
 
   window.addEventListener('keydown', handleKeyDown);
@@ -1104,15 +1151,11 @@ function renderQuizMatrix() {
     matrixEl.appendChild(header);
   });
 
-  let totalScore = 0;
-
   for (let p = 0; p < 3; p++) {
     const pt = ptsList[p];
     for (let g = 0; g < 3; g++) {
       const panelIdx = g * 3 + p;
       const isCleared = userProgress.appliedClears[panelIdx];
-
-      if (isCleared) totalScore += pt;
 
       const btn = document.createElement('button');
       btn.className = `quiz-panel-btn ${isCleared ? 'cleared' : ''} ${panelIdx === currentAppliedPanelIdx ? 'active' : ''}`;
@@ -1122,21 +1165,11 @@ function renderQuizMatrix() {
       matrixEl.appendChild(btn);
     }
   }
-
-  updateDigitalScoreDisplay(totalScore);
 }
 
-function updateDigitalScoreDisplay(currentScore) {
-  if (currentScore === undefined) {
-    const ptsList = [10, 30, 50];
-    currentScore = 0;
-    userProgress.appliedClears.forEach((cleared, idx) => {
-      if (cleared) currentScore += ptsList[idx % 3];
-    });
-  }
-
-  document.getElementById('currentScoreDisplay').innerText = currentScore;
-  document.getElementById('highScoreDisplay').innerText = userProgress.highScore;
+function updateTouchCounterDisplay() {
+  const touches = userProgress.totalTouches || 0;
+  document.getElementById('touchCounterDisplay').innerText = String(touches).padStart(4, '0');
 }
 
 /* =========================================================
@@ -1433,7 +1466,6 @@ function handleKeyDown(e) {
 function handleCharInput(key) {
   highlightKey(key);
 
-  // 打鍵座標の取得（コイン発射位置）
   const keyEl = document.getElementById(`key-${key}`);
   const rect = keyEl ? keyEl.getBoundingClientRect() : { left: window.innerWidth / 2, top: window.innerHeight / 2, width: 0, height: 0 };
   const startX = rect.left + rect.width / 2;
@@ -1450,12 +1482,14 @@ function handleCharInput(key) {
 
     if (isMatch) {
       speakVowel(pressedKana);
-      spawnCoinParticle(startX, startY, true, true);
+      userProgress.totalTouches = (userProgress.totalTouches || 0) + 1;
+      updateTouchCounterDisplay();
+      spawnCoinParticle(startX, startY, pressedKana, true);
       warmupTypedCount++;
       if (warmupTypedCount >= 8) warmupClearedPending = true;
     } else {
       playAudioSE('incorrect');
-      spawnCoinParticle(startX, startY, false, false);
+      spawnCoinParticle(startX, startY, null, false);
     }
   } else {
     const testString = currentTypedString + key;
@@ -1467,8 +1501,19 @@ function handleCharInput(key) {
       activeRomajiPattern = matchedPatterns[0];
 
       playAudioSE('correct');
-      const isGold = !currentState.romajiVisible; // ヒントなし時は金コイン
-      spawnCoinParticle(startX, startY, isGold, true);
+      userProgress.totalTouches = (userProgress.totalTouches || 0) + 1;
+      updateTouchCounterDisplay();
+
+      // 現在入力中（または対応する）ひらがなを抽出して終点ターゲットに設定
+      let currentTargetKana = null;
+      if (currentWord.kana) {
+        // おおよその文字進行位置からかな文字を特定
+        const progressRatio = currentTypedString.length / activeRomajiPattern.length;
+        const kanaIndex = Math.min(Math.floor(progressRatio * currentWord.kana.length), currentWord.kana.length - 1);
+        currentTargetKana = currentWord.kana[kanaIndex];
+      }
+
+      spawnCoinParticle(startX, startY, currentTargetKana, true);
 
       const targetId = (currentAppMode === 'basic') ? 'basicRomajiDisplay' : 'appliedRomajiDisplay';
       updateRomajiDisplay(targetId);
@@ -1479,7 +1524,7 @@ function handleCharInput(key) {
     } else {
       // 不正解打鍵
       playAudioSE('incorrect');
-      spawnCoinParticle(startX, startY, false, false);
+      spawnCoinParticle(startX, startY, null, false);
     }
   }
 }
@@ -1512,8 +1557,13 @@ function onWordCleared() {
       saveProgress();
 
       setTimeout(() => {
-        if (currentBasicStep < 9) startBasicStep(currentBasicStep + 1);
-        else startBasicStep(currentBasicStep);
+        // ★修正：第10ステップ（idx: 9）をクリアした場合はステージ完了演出へ！
+        if (currentBasicStep < 9) {
+          startBasicStep(currentBasicStep + 1);
+        } else {
+          playAudioSE('allClear');
+          showBasicStageClearModal();
+        }
       }, 200);
     } else {
       setTimeout(loadBasicQuestion, 300);
@@ -1526,7 +1576,6 @@ function onWordCleared() {
       playAudioSE('panelClear');
       userProgress.appliedClears[currentAppliedPanelIdx] = true;
       
-      // スコア計算
       const ptsList = [10, 30, 50];
       let currentScore = 0;
       userProgress.appliedClears.forEach((cleared, idx) => {
@@ -1561,20 +1610,42 @@ function onWordCleared() {
   }
 }
 
-/* 勝利・ハイスコア祝福モーダルの動的生成 */
+/* 第2ステージ（基礎）完全コンプリートダイアログ */
+function showBasicStageClearModal() {
+  const modalTitle = document.getElementById('modalTitle');
+  const modalMsg = document.getElementById('modalMessage');
+  const modalBtn = document.getElementById('modalBtn');
+
+  modalTitle.innerText = "🚀 基礎ステージ コンプリート！ 🚀";
+  modalMsg.innerHTML = `おめでとうございます！ 50音すべてのローマ字入力をマスターしました！<br><br>通算打鍵数: <strong style="font-size:1.4rem; color:#38bdf8;">${userProgress.totalTouches || 0} タッチ</strong><br><br>次は応用ステージ「クイズグランプリ」に挑戦してみよう！`;
+  
+  modalBtn.innerText = "クイズグランプリに挑戦する";
+  modalBtn.onclick = () => {
+    closeModal();
+    switchMode('applied');
+  };
+
+  document.getElementById('victoryModal').style.display = 'flex';
+}
+
+/* 第3ステージ（応用）完全コンプリートダイアログ */
 function showVictoryModal(score, oldHigh, isNewHigh) {
   const modalTitle = document.getElementById('modalTitle');
   const modalMsg = document.getElementById('modalMessage');
+  const modalBtn = document.getElementById('modalBtn');
+
+  modalBtn.innerText = "挑戦をつづける";
+  modalBtn.onclick = closeModal;
 
   if (oldHigh === 0) {
     modalTitle.innerText = "🎉 全パネルクリア！ 🎉";
-    modalMsg.innerHTML = `おめでとうございます！ 全クイズパネルを制覇しました！<br><br><strong style="font-size:1.4rem; color:#f59e0b;">スコア: ${score} pt</strong>`;
+    modalMsg.innerHTML = `おめでとうございます！ 全クイズパネルを制覇しました！<br><br><strong style="font-size:1.4rem; color:#f59e0b;">スコア: ${score} pt</strong><br>通算打鍵数: ${userProgress.totalTouches || 0} タッチ`;
   } else if (isNewHigh) {
     modalTitle.innerText = "👑 自己ベスト更新！ 新記録！ 👑";
-    modalMsg.innerHTML = `素晴らしい！ 過去のハイスコアを塗り替えました！<br><br>前回のハイスコア: ${oldHigh} pt<br><strong style="font-size:1.6rem; color:#8b5cf6;">🎉 新記録: ${score} pt 🎉</strong>`;
+    modalMsg.innerHTML = `素晴らしい！ 過去のハイスコアを塗り替えました！<br><br>前回のハイスコア: ${oldHigh} pt<br><strong style="font-size:1.6rem; color:#8b5cf6;">🎉 新記録: ${score} pt 🎉</strong><br>通算打鍵数: ${userProgress.totalTouches || 0} タッチ`;
   } else {
     modalTitle.innerText = "🎉 グランプリ達成！ 🎉";
-    modalMsg.innerHTML = `全パネルクリア おめでとうございます！<br><br>今回のスコア: <strong>${score} pt</strong><br>(歴代ハイスコア: ${oldHigh} pt)`;
+    modalMsg.innerHTML = `全パネルクリア おめでとうございます！<br><br>今回のスコア: <strong>${score} pt</strong><br>(歴代ハイスコア: ${oldHigh} pt)<br>通算打鍵数: ${userProgress.totalTouches || 0} タッチ`;
   }
 
   document.getElementById('victoryModal').style.display = 'flex';
@@ -1608,22 +1679,24 @@ function speakVowel(kana) {
 
 function saveProgress() {
   try {
-    localStorage.setItem('typing_app_grandprix_v2', JSON.stringify(userProgress));
+    localStorage.setItem('typing_app_grandprix_v3', JSON.stringify(userProgress));
   } catch(e) {}
 }
 
 function resetData() {
-  if (confirm("これまでの全ステージの学習進捗データとハイスコアを初期化しますか？")) {
-    localStorage.removeItem('typing_app_grandprix_v2');
+  if (confirm("これまでの全ステージの学習進捗データと記録を初期化しますか？")) {
+    localStorage.removeItem('typing_app_grandprix_v3');
     userProgress = { 
       gojuon: {}, 
       basicClears: [0,0,0,0,0,0,0,0,0,0], 
       warmupClears: [0,0,0,0,0],
       appliedClears: [false,false,false,false,false,false,false,false,false],
-      highScore: 0
+      highScore: 0,
+      totalTouches: 0
     };
     renderGojuonGrid();
     renderQuizMatrix();
+    updateTouchCounterDisplay();
     startWarmupStep(0);
     startBasicStep(0);
     selectAppliedPanel(0);
