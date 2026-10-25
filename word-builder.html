@@ -114,7 +114,7 @@
       gap: 16px;
     }
 
-    /* 左カラム：ステップ選択・プロンプト・インポート */
+    /* 左カラム */
     .left-panel {
       width: 380px;
       display: flex;
@@ -124,7 +124,7 @@
       flex-shrink: 0;
     }
 
-    /* 右カラム：取捨選択・編集リスト */
+    /* 右カラム */
     .right-panel {
       flex: 1;
       background: var(--card-bg);
@@ -154,7 +154,6 @@
       gap: 6px;
     }
 
-    /* ステップグリッドボタン */
     .step-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -188,7 +187,6 @@
       color: #a7f3d0;
     }
 
-    /* テキストエリア */
     textarea {
       width: 100%;
       height: 120px;
@@ -200,7 +198,6 @@
       resize: vertical;
     }
 
-    /* 右カラム：ヘッダー・フッター */
     .right-header {
       padding: 14px 18px;
       border-bottom: 1px solid var(--border-color);
@@ -229,7 +226,6 @@
       gap: 10px;
     }
 
-    /* 単語カード */
     .word-card {
       border: 1px solid var(--border-color);
       border-radius: 8px;
@@ -307,7 +303,6 @@
       align-items: center;
     }
 
-    /* 編集モーダル */
     .modal-overlay {
       position: fixed;
       top:0; left:0; width:100vw; height:100vh;
@@ -365,7 +360,7 @@
 </div>
 
 <div class="main-container">
-  <!-- 左カラム：コントロール＆インポート -->
+  <!-- 左カラム -->
   <div class="left-panel">
     
     <div class="panel-card">
@@ -388,7 +383,7 @@
 
   </div>
 
-  <!-- 右カラム：取捨選択・編集 -->
+  <!-- 右カラム -->
   <div class="right-panel">
     <div class="right-header">
       <div>
@@ -402,7 +397,7 @@
     </div>
 
     <div class="word-list-container" id="wordListContainer">
-      <!-- 単語カードが動的生成されます -->
+      <!-- 単語カード動的生成 -->
     </div>
 
     <div class="right-footer">
@@ -452,10 +447,11 @@ const BASIC_RULES = [
   { step: 10, name: "Step 10: 総合復習", rule: "全ひらがな・促音・拗音を含む総合問題", allowedRegex: /^[ぁ-んー！？」]+$/ }
 ];
 
+/* ★難易度名を「やさしい/ふつう/むずかしい」に表記変更 */
 const APPLIED_PANELS_DEF = [
-  { idx: 0, genreName: "体と健康", pts: 10 }, { idx: 1, genreName: "体と健康", pts: 30 }, { idx: 2, genreName: "体と健康", pts: 50 },
-  { idx: 3, genreName: "社会とお金", pts: 10 }, { idx: 4, genreName: "社会とお金", pts: 30 }, { idx: 5, genreName: "社会とお金", pts: 50 },
-  { idx: 6, genreName: "自然と生き物", pts: 10 }, { idx: 7, genreName: "自然と生き物", pts: 30 }, { idx: 8, genreName: "自然と生き物", pts: 50 }
+  { idx: 0, genreName: "体と健康", diffName: "やさしい" }, { idx: 1, genreName: "体と健康", diffName: "ふつう" }, { idx: 2, genreName: "体と健康", diffName: "むずかしい" },
+  { idx: 3, genreName: "社会とお金", diffName: "やさしい" }, { idx: 4, genreName: "社会とお金", diffName: "ふつう" }, { idx: 5, genreName: "社会とお金", diffName: "むずかしい" },
+  { idx: 6, genreName: "自然と生き物", diffName: "やさしい" }, { idx: 7, genreName: "自然と生き物", diffName: "ふつう" }, { idx: 8, genreName: "自然と生き物", diffName: "むずかしい" }
 ];
 
 /* ローマ字全自動変換テーブル */
@@ -510,7 +506,6 @@ function generateRomajiPatterns(kanaStr) {
     let match = null;
     let matchLen = 0;
 
-    // 拗音（2文字判定）
     if (i + 1 < kanaStr.length) {
       const pair = kanaStr.substr(i, 2);
       if (ROMAJI_MAP[pair]) {
@@ -519,7 +514,6 @@ function generateRomajiPatterns(kanaStr) {
       }
     }
 
-    // 促音（っ）判定
     if (!match && kanaStr[i] === 'っ' && i + 1 < kanaStr.length) {
       const nextChar = kanaStr[i + 1];
       const nextRomaji = ROMAJI_MAP[nextChar];
@@ -533,7 +527,6 @@ function generateRomajiPatterns(kanaStr) {
       }
     }
 
-    // 単文字判定
     if (!match) {
       match = ROMAJI_MAP[kanaStr[i]];
       matchLen = 1;
@@ -548,14 +541,12 @@ function generateRomajiPatterns(kanaStr) {
       results = newResults;
       i += matchLen;
     } else {
-      // 未定義文字はそのまま追加
       const char = kanaStr[i].toUpperCase();
       results = results.map(r => r + char);
       i++;
     }
   }
 
-  // 重複除去
   return Array.from(new Set(results));
 }
 
@@ -613,8 +604,8 @@ function loadStepData() {
     targetRule.innerText = `💡 学習ルール: ${info.rule}`;
   } else {
     const info = APPLIED_PANELS_DEF[currentStepIdx];
-    targetTitle.innerText = `Panel ${currentStepIdx + 1}: 【${info.genreName}】 ${info.pts} pt`;
-    targetRule.innerText = `💡 応用ルール: 「${info.genreName}」に関する学問・探究語句を出題`;
+    targetTitle.innerText = `Panel ${currentStepIdx + 1}: 【${info.genreName}】 ${info.diffName}`;
+    targetRule.innerText = `💡 応用ルール: 「${info.genreName}」に関する学問・探究語句 (${info.diffName})`;
   }
 
   renderWordList();
@@ -728,7 +719,7 @@ function copyAIPrompt() {
   } else {
     const info = APPLIED_PANELS_DEF[currentStepIdx];
     promptText = `【指示】小・中学生の探究心を刺激するタイピングクイズ用の単語候補を作成してください。
-ジャンル: ${info.genreName} (${info.pts}pt相当の難易度)
+ジャンル: ${info.genreName} (難易度: ${info.diffName})
 語数: 好奇心をくすぐる学問・科学用語を 10 個出力してください。
 形式: 1行につき「漢字表示,読み」の形式のみ（余計な解説は不要）。
 
@@ -749,7 +740,6 @@ function importText() {
 
   const newItems = [];
 
-  // JSON形式かチェック
   if (text.startsWith('[') || text.startsWith('{')) {
     try {
       const parsed = JSON.parse(text);
@@ -763,11 +753,10 @@ function importText() {
     } catch(e) {}
   }
 
-  // テキスト・CSV・TSV形式処理
   if (newItems.length === 0) {
     const lines = text.split('\n');
     lines.forEach(line => {
-      const cleaned = line.replace(/^\d+[\.\)]\s*/, '').trim(); // 行頭番号除去
+      const cleaned = line.replace(/^\d+[\.\)]\s*/, '').trim();
       if (!cleaned) return;
 
       const parts = cleaned.includes(',') ? cleaned.split(',') : cleaned.split('\t');
@@ -874,14 +863,12 @@ function loadFromLocalStorage() {
 }
 
 function exportWordsJS() {
-  // 基礎データの構築 (選択された語句のみ抽出、足りない場合は全選択)
-  const basicOutput = dataset.basic.map((stepItems, stepIdx) => {
+  const basicOutput = dataset.basic.map((stepItems) => {
     let selected = stepItems.filter(i => i.selected);
-    if (selected.length === 0) selected = stepItems; // 未選択時は全件
+    if (selected.length === 0) selected = stepItems;
     return selected.map(i => ({ word: i.word, kana: i.kana, patterns: i.patterns }));
   });
 
-  // 応用データの構築
   const appliedOutput = dataset.applied.map((panelItems, panelIdx) => {
     const def = APPLIED_PANELS_DEF[panelIdx];
     let selected = panelItems.filter(i => i.selected);
@@ -890,7 +877,6 @@ function exportWordsJS() {
     return {
       genreIdx: Math.floor(panelIdx / 3),
       genreName: def.genreName,
-      pts: def.pts,
       items: selected.map(i => ({ word: i.word, kana: i.kana, patterns: i.patterns }))
     };
   });

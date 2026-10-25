@@ -373,7 +373,7 @@
       border-radius: 8px;
       color: var(--primary-color);
       font-weight: bold;
-      font-size: 1rem;
+      font-size: 0.95rem;
       cursor: pointer;
       display: flex;
       flex-direction: column;
@@ -695,20 +695,20 @@ const CONFIG = {
   KANA_HINT_DELAY: 1200,   
   ROMAJI_HINT_DELAY: 5000, 
   GOLD_THRESHOLD: 2,
-  MISS_COOLDOWN_MS: 800  /* ★連打抑制用クールダウン時間(0.8秒) */
+  MISS_COOLDOWN_MS: 800
 };
 
+/* 難易度表示名定義 */
+const DIFFICULTY_NAMES = ["やさしい", "ふつう", "むずかしい"];
+
 const WARMUP_STEPS = [
-  { name: "Step 1: ういういえいえい", text: "ういういえいえい" },
+  { name: "Step 1: ういういういうい", text: "ういういえいえい" },
   { name: "Step 2: えいえいおうえい", text: "えいえいおうえい" },
   { name: "Step 3: あいういえいおう", text: "あいういえいおう" },
   { name: "Step 4: あおいえいえおあ", text: "あおいえいえおあ" },
   { name: "Step 5: あえいうえおあお", text: "あえいうえおあお" }
 ];
 
-/* 
- * words.js が読み込まれていない場合のフォールバック定義
- */
 if (typeof BASIC_STEPS_DATA === 'undefined') {
   window.BASIC_STEPS_DATA = [
     [ { word: "単語データなし", kana: "たんごでーたなし", patterns: ["TANGODE-TANASI"] } ]
@@ -756,7 +756,7 @@ let currentState = { kanaVisible: false, romajiVisible: false };
 let kanaTimer = null;
 let romajiTimer = null;
 
-let lastMissTime = 0; /* ★直前のミスタッチ発生時刻 */
+let lastMissTime = 0;
 
 let userProgress = { 
   gojuon: {}, 
@@ -1077,12 +1077,12 @@ function renderGojuonGrid() {
   document.getElementById('progressText').innerText = `マスター: ${totalMastered} / ${totalCount}`;
 }
 
+/* ★「10pt/30pt/50pt」を「やさしい/ふつう/むずかしい」に表記変更 */
 function renderQuizMatrix() {
   const matrixEl = document.getElementById('quizMatrix');
   matrixEl.innerHTML = '';
 
   const genres = ["体と健康", "社会とお金", "自然と生き物"];
-  const ptsList = [10, 30, 50];
 
   genres.forEach(gName => {
     const header = document.createElement('div');
@@ -1092,14 +1092,14 @@ function renderQuizMatrix() {
   });
 
   for (let p = 0; p < 3; p++) {
-    const pt = ptsList[p];
+    const diffName = DIFFICULTY_NAMES[p];
     for (let g = 0; g < 3; g++) {
       const panelIdx = g * 3 + p;
       const isCleared = userProgress.appliedClears[panelIdx];
 
       const btn = document.createElement('button');
       btn.className = `quiz-panel-btn ${isCleared ? 'cleared' : ''} ${panelIdx === currentAppliedPanelIdx ? 'active' : ''}`;
-      btn.innerText = `${pt} pt`;
+      btn.innerText = diffName;
       btn.onclick = () => selectAppliedPanel(panelIdx);
 
       matrixEl.appendChild(btn);
@@ -1328,7 +1328,7 @@ function loadBasicQuestion() {
    ========================================================= */
 function selectAppliedPanel(panelIdx) {
   currentAppliedPanelIdx = panelIdx;
-  const panelData = APPLIED_PANELS[currentAppliedPanelIdx] || { genreName: "---", pts: 0, items: [] };
+  const panelData = APPLIED_PANELS[currentAppliedPanelIdx] || { genreName: "---", items: [] };
   appliedWordList = panelData.items || [];
   currentAppliedWordIdx = 0;
 
@@ -1336,17 +1336,20 @@ function selectAppliedPanel(panelIdx) {
   loadAppliedQuestion();
 }
 
+/* ★出題ヘッダー表示を「やさしい/ふつう/むずかしい」に更新 */
 function loadAppliedQuestion() {
   clearTimeout(kanaTimer);
   clearTimeout(romajiTimer);
 
-  const panelData = APPLIED_PANELS[currentAppliedPanelIdx] || { genreName: "---", pts: 0 };
+  const panelData = APPLIED_PANELS[currentAppliedPanelIdx] || { genreName: "---" };
+  const diffName = DIFFICULTY_NAMES[currentAppliedPanelIdx % 3];
+
   currentWord = appliedWordList[currentAppliedWordIdx] || { word: "---", kana: "---", patterns: ["---"] };
   currentTypedString = "";
   activeRomajiPattern = currentWord.patterns[0];
   currentState = { kanaVisible: false, romajiVisible: false };
 
-  document.getElementById('appliedPanelTag').innerText = `【${panelData.genreName}】 ${panelData.pts} pt パネル`;
+  document.getElementById('appliedPanelTag').innerText = `【${panelData.genreName}】 ${diffName}`;
   document.getElementById('appliedKanjiDisplay').innerText = currentWord.word;
   
   const kanaEl = document.getElementById('appliedKanaDisplay');
@@ -1355,7 +1358,7 @@ function loadAppliedQuestion() {
 
   const totalWords = appliedWordList.length || 5;
   document.getElementById('appliedProgressText').innerText = `${currentAppliedWordIdx + 1} / ${totalWords} 問目`;
-  document.getElementById('appliedSubText').innerText = `正解打鍵で ${panelData.pts} pt GET!`;
+  document.getElementById('appliedSubText').innerText = `正解打鍵でクリアを目指そう！`;
 
   updateRomajiDisplay('appliedRomajiDisplay');
 
@@ -1407,13 +1410,9 @@ function handleKeyDown(e) {
 }
 
 function handleCharInput(key) {
-  // キーの沈み込み視覚フィードバック
   highlightKey(key);
 
-  /* ★【課題1修正】Shift キー単独入力時は判定・サウンド・演出をすべてバイパス */
-  if (key === 'SHIFT') {
-    return;
-  }
+  if (key === 'SHIFT') return;
 
   const keyEl = document.getElementById(`key-${key}`);
   const rect = keyEl ? keyEl.getBoundingClientRect() : { left: window.innerWidth / 2, top: window.innerHeight / 2, width: 0, height: 0 };
@@ -1438,8 +1437,6 @@ function handleCharInput(key) {
       if (warmupTypedCount >= 8) warmupClearedPending = true;
     } else {
       playAudioSE('incorrect');
-      
-      /* ★【課題2修正】ミスタッチ連打抑制クールダウン (0.8秒) */
       const now = Date.now();
       if (now - lastMissTime > CONFIG.MISS_COOLDOWN_MS) {
         spawnCoinParticle(startX, startY, null, false);
@@ -1451,7 +1448,6 @@ function handleCharInput(key) {
     const matchedPatterns = currentWord.patterns.filter(p => p.startsWith(testString));
 
     if (matchedPatterns.length > 0) {
-      // 正解打鍵
       currentTypedString = testString;
       activeRomajiPattern = matchedPatterns[0];
 
@@ -1475,10 +1471,7 @@ function handleCharInput(key) {
         onWordCleared();
       }
     } else {
-      // 不正解打鍵
       playAudioSE('incorrect');
-
-      /* ★【課題2修正】ミスタッチ連打抑制クールダウン (0.8秒) */
       const now = Date.now();
       if (now - lastMissTime > CONFIG.MISS_COOLDOWN_MS) {
         spawnCoinParticle(startX, startY, null, false);
@@ -1535,20 +1528,6 @@ function onWordCleared() {
     if (currentAppliedWordIdx >= totalWords) {
       playAudioSE('panelClear');
       userProgress.appliedClears[currentAppliedPanelIdx] = true;
-      
-      const ptsList = [10, 30, 50];
-      let currentScore = 0;
-      userProgress.appliedClears.forEach((cleared, idx) => {
-        if (cleared) currentScore += ptsList[idx % 3];
-      });
-
-      const oldHighScore = userProgress.highScore || 0;
-      let isNewHighScore = false;
-
-      if (currentScore > oldHighScore) {
-        userProgress.highScore = currentScore;
-        isNewHighScore = true;
-      }
 
       saveProgress();
       renderQuizMatrix();
@@ -1558,7 +1537,7 @@ function onWordCleared() {
       setTimeout(() => {
         if (allCleared) {
           playAudioSE('allClear');
-          showVictoryModal(currentScore, oldHighScore, isNewHighScore);
+          showVictoryModal();
         } else {
           const nextPanel = userProgress.appliedClears.findIndex(c => c === false);
           if (nextPanel !== -1) selectAppliedPanel(nextPanel);
@@ -1570,7 +1549,6 @@ function onWordCleared() {
   }
 }
 
-/* 第2ステージ（基礎）完全コンプリートダイアログ */
 function showBasicStageClearModal() {
   const modalTitle = document.getElementById('modalTitle');
   const modalMsg = document.getElementById('modalMessage');
@@ -1588,25 +1566,19 @@ function showBasicStageClearModal() {
   document.getElementById('victoryModal').style.display = 'flex';
 }
 
-/* 第3ステージ（応用）完全コンプリートダイアログ */
-function showVictoryModal(score, oldHigh, isNewHigh) {
+/* ★ポイント制からクリアパネル数表記に整理したコンプリートモーダル */
+function showVictoryModal() {
   const modalTitle = document.getElementById('modalTitle');
   const modalMsg = document.getElementById('modalMessage');
   const modalBtn = document.getElementById('modalBtn');
 
+  const clearedCount = userProgress.appliedClears.filter(c => c === true).length;
+
   modalBtn.innerText = "挑戦をつづける";
   modalBtn.onclick = closeModal;
 
-  if (oldHigh === 0) {
-    modalTitle.innerText = "🎉 全パネルクリア！ 🎉";
-    modalMsg.innerHTML = `おめでとうございます！ 全クイズパネルを制覇しました！<br><br><strong style="font-size:1.4rem; color:#f59e0b;">スコア: ${score} pt</strong><br>通算打鍵数: ${userProgress.totalTouches || 0} タッチ`;
-  } else if (isNewHigh) {
-    modalTitle.innerText = "👑 自己ベスト更新！ 新記録！ 👑";
-    modalMsg.innerHTML = `素晴らしい！ 過去のハイスコアを塗り替えました！<br><br>前回のハイスコア: ${oldHigh} pt<br><strong style="font-size:1.6rem; color:#8b5cf6;">🎉 新記録: ${score} pt 🎉</strong><br>通算打鍵数: ${userProgress.totalTouches || 0} タッチ`;
-  } else {
-    modalTitle.innerText = "🎉 グランプリ達成！ 🎉";
-    modalMsg.innerHTML = `全パネルクリア おめでとうございます！<br><br>今回のスコア: <strong>${score} pt</strong><br>(歴代ハイスコア: ${oldHigh} pt)<br>通算打鍵数: ${userProgress.totalTouches || 0} タッチ`;
-  }
+  modalTitle.innerText = "🎉 全パネルクリア！ 🎉";
+  modalMsg.innerHTML = `おめでとうございます！ 全9個のクイズパネルをすべて達成しました！<br><br>クリアパネル: <strong style="font-size:1.4rem; color:#f59e0b;">9 / 9 パネル</strong><br>通算打鍵数: <strong style="font-size:1.4rem; color:#38bdf8;">${userProgress.totalTouches || 0} タッチ</strong>`;
 
   document.getElementById('victoryModal').style.display = 'flex';
 }
