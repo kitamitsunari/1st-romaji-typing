@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>タイピング学習システム：クイズグランプリ</title>
+  
+  <!-- 外部単語データファイル (words.js) の読み込み -->
+  <script src="words.js"></script>
+
   <style>
     /* =========================================================
        iPad（第10世代 横置き 10.9インチ / 4:3）画面最適化 & テーマカラー定義
@@ -288,7 +292,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     }
 
-    /* 上段右：共通エリア（50音マップ／クイズグランプリ盤） */
+    /* 上段右：共通エリア（50音マップ／クイズ盤） */
     .bottom-card {
       flex: 1.1;
       height: 100%;
@@ -701,85 +705,21 @@ const WARMUP_STEPS = [
   { name: "Step 5: あえいうえおあお", text: "あえいうえおあお" }
 ];
 
-const BASIC_STEPS_DATA = [
-  [ { word: "青い", kana: "あおい", patterns: ["AOI"] }, { word: "家", kana: "いえ", patterns: ["IE"] }, { word: "追う", kana: "おう", patterns: ["OU"] }, { word: "硫黄", kana: "いおう", patterns: ["IOU"] }, { word: "上", kana: "うえ", patterns: ["UE"] } ],
-  [ { word: "柿", kana: "かき", patterns: ["KAKI"] }, { word: "菊", kana: "きく", patterns: ["KIKU"] }, { word: "池", kana: "いけ", patterns: ["IKE"] }, { word: "声", kana: "こえ", patterns: ["KOE"] }, { word: "秋", kana: "あき", patterns: ["AKI"] } ],
-  [ { word: "寿司", kana: "すし", patterns: ["SUSI", "SUSHI"] }, { word: "傘", kana: "かさ", patterns: ["KASA"] }, { word: "汗", kana: "あせ", patterns: ["ASE"] }, { word: "底", kana: "そこ", patterns: ["SOKO"] }, { word: "鹿", kana: "しか", patterns: ["SIKA", "SHIKA"] } ],
-  [ { word: "竹", kana: "たけ", patterns: ["TAKE"] }, { word: "糸", kana: "いと", patterns: ["ITO"] }, { word: "立つ", kana: "たつ", patterns: ["TATU", "TATSU"] }, { word: "地下", kana: "ちか", patterns: ["TIKA", "CHIKA"] }, { word: "月", kana: "つき", patterns: ["TUKI", "TSUKI"] } ],
-  [ { word: "犬", kana: "いぬ", patterns: ["INU"] }, { word: "猫", kana: "ねこ", patterns: ["NEKO"] }, { word: "何", kana: "なに", patterns: ["NANI"] }, { word: "国", kana: "くに", patterns: ["KUNI"] }, { word: "布", kana: "ぬの", patterns: ["NUNO"] } ],
-  [ { word: "花", kana: "はな", patterns: ["HANA"] }, { word: "舟", kana: "ふね", patterns: ["HUNE", "FUNE"] }, { word: "星", kana: "ほし", patterns: ["HOSI", "HOSHI"] }, { word: "服", kana: "ふく", patterns: ["HUKU", "FUKU"] }, { word: "ヘソ", kana: "へそ", patterns: ["HESO"] } ],
-  [ { word: "雨", kana: "あめ", patterns: ["AME"] }, { word: "海", kana: "うみ", patterns: ["UMI"] }, { word: "桃", kana: "もも", patterns: ["MOMO"] }, { word: "豆", kana: "まめ", patterns: ["MAME"] }, { word: "虫", kana: "むし", patterns: ["MUSI", "MUSHI"] } ],
-  [ { word: "山", kana: "やま", patterns: ["YAMA"] }, { word: "雪", kana: "ゆき", patterns: ["YUKI"] }, { word: "夜", kana: "よる", patterns: ["YORU"] }, { word: "栗", kana: "くり", patterns: ["KURI"] }, { word: "桜", kana: "さくら", patterns: ["SAKURA"] } ],
-  [ { word: "猿", kana: "さる", patterns: ["SARU"] }, { word: "彼", kana: "かれ", patterns: ["KARE"] }, { word: "黒", kana: "くろ", patterns: ["KURO"] }, { word: "川", kana: "かわ", patterns: ["KAWA"] }, { word: "昼間", kana: "ひるま", patterns: ["HIRUMA"] } ],
-  [ { word: "本屋", kana: "ほんや", patterns: ["HONYA", "HONNYA"] }, { word: "気をつけ", kana: "きをつけ", patterns: ["KIWOTUKE", "KIWOTSUKE"] }, { word: "天気", kana: "てんき", patterns: ["TENKI", "TENNKI"] }, { word: "明日", kana: "あした", patterns: ["ASITA", "ASHITA"] }, { word: "正夢", kana: "まさゆめ", patterns: ["MASAYUME"] } ]
-];
+/* 
+ * 注意: BASIC_STEPS_DATA および APPLIED_PANELS は words.js から読み込みます。
+ * 万が一 words.js が読み込まれていない場合のフォールバック定義
+ */
+if (typeof BASIC_STEPS_DATA === 'undefined') {
+  window.BASIC_STEPS_DATA = [
+    [ { word: "単語データなし", kana: "たんごでーたなし", patterns: ["TANGODE-TANASI"] } ]
+  ];
+}
+if (typeof APPLIED_PANELS === 'undefined') {
+  window.APPLIED_PANELS = [
+    { genreIdx: 0, genreName: "エラー", pts: 10, items: [ { word: "単語データなし", kana: "たんごでーたなし", patterns: ["TANGODE-TANASI"] } ] }
+  ];
+}
 
-const APPLIED_PANELS = [
-  { genreIdx: 0, genreName: "体と健康", pts: 10, items: [
-      { word: "骨", kana: "ほね", patterns: ["HONE"] },
-      { word: "筋肉", kana: "きんにく", patterns: ["KINNIKU", "KINNNIKU"] },
-      { word: "心臓", kana: "しんぞう", patterns: ["SINZOU", "SHINZOU", "SINJOU", "SHINJOU"] },
-      { word: "靭帯", kana: "じんたい", patterns: ["JINTAI", "ZINTAI"] },
-      { word: "直腸", kana: "ちょくちょう", patterns: ["TYOKUTYOU", "CHOKUCHOU", "CYOKUCYOU", "TYOKUCHOU", "CHOKUTYOU"] }
-  ]},
-  { genreIdx: 0, genreName: "体と健康", pts: 30, items: [
-      { word: "血液", kana: "けつえき", patterns: ["KETUEKI", "KETSUEKI"] },
-      { word: "ワクチン", kana: "わくちん", patterns: ["WAKUTIN", "WAKUCHIN"] },
-      { word: "ピロリ菌", kana: "ぴろりきん", patterns: ["PIRORIKIN", "PIRORIKINN"] },
-      { word: "免疫", kana: "めんえき", patterns: ["MENEKI", "MENNEKI"] },
-      { word: "マメにマスクを", kana: "まめにますくを", patterns: ["MAMENIMASUKUWO"] }
-  ]},
-  { genreIdx: 0, genreName: "体と健康", pts: 50, items: [
-      { word: "手指消毒！", kana: "しゅししょうどく！", patterns: ["SYUSISYOUDOKU!", "SHUSHISHOUDOKU!", "SYUSISHOUDOKU!", "SHUSHISYOUDOKU!"] },
-      { word: "血中酸素濃度", kana: "けっちゅうさんそのうど", patterns: ["KETTYUUSANSONOUDO", "KECCHUUSANSONOUDO", "KETTYUUSANNSONOUDO", "KECCHUUSANNSONOUDO"] },
-      { word: "119ばんしてください！", kana: "119ばんしてください！", patterns: ["119BANSITEKUDASAI!", "119BANNSITEKUDASAI!", "119BANSHITEKUDASAI!", "119BANNSHITEKUDASAI!", "119BANSHITIKUDASAI!"] },
-      { word: "「命」の不思議", kana: "「いのち」のふしぎ", patterns: ["[INOTI]NOHUSIGI", "[INOCHI]NOHUSHIGI", "[INOTHI]NOHUSIGI", "[INOCHI]NOHUSIGI", "[INOCHI]NOFUSIGI", "[INOCHI]NOFUSHIGI"] },
-      { word: "健康が一番！", kana: "けんこうがいちばん！", patterns: ["KENKOUGAITIBAN!", "KENKOUGAICHIBAN!", "KENNKOUGAITIBAN!", "KENNKOUGAICHIBAN!", "KENKOUGAIZIBAN!", "KENKOUGAIJIBAN!"] }
-  ]},
-  { genreIdx: 1, genreName: "社会とお金", pts: 10, items: [
-      { word: "お金", kana: "おかね", patterns: ["OKANE"] },
-      { word: "銀行", kana: "ぎんこう", patterns: ["GINKOU", "GINNKOU"] },
-      { word: "お札", kana: "おさつ", patterns: ["OSATU", "OSATSU"] },
-      { word: "仕事", kana: "しごと", patterns: ["SIGOTO", "SHIGOTO"] },
-      { word: "価値", kana: "かち", patterns: ["KATI", "KACHI"] }
-  ]},
-  { genreIdx: 1, genreName: "社会とお金", pts: 30, items: [
-      { word: "会社", kana: "かいしゃ", patterns: ["KAISYA", "KAISHA"] },
-      { word: "キャッシュレス", kana: "きゃっしゅれす", patterns: ["KYASSYURESU", "KYASSHURESU", "KYASSURESU"] },
-      { word: "消費税", kana: "しょうひぜい", patterns: ["SYOUHIZEI", "SHOUHIZEI"] },
-      { word: "コード決済", kana: "こーどけっさい", patterns: ["KO-DOKESSAI", "KO-DOKETUSAI"] },
-      { word: "ノーベル賞", kana: "のーべるしょう", patterns: ["NO-BERUSYOU", "NO-BERUSHOU"] }
-  ]},
-  { genreIdx: 1, genreName: "社会とお金", pts: 50, items: [
-      { word: "価値を交換する", kana: "かちをこうかんする", patterns: ["KATIWOKOUKANSURU", "KACHIWOKOUKANSURU", "KATIWOKOUKANNSURU", "KACHIWOKOUKANNSURU"] },
-      { word: "100円の「おもみ」", kana: "100えんの「おもみ」", patterns: ["100ENNO[OMOMI]", "100ENNNO[OMOMI]"] },
-      { word: "「モノ」と「サービス」", kana: "「もの」と「さーびす」", patterns: ["[MONO]TO[SA-BISU]"] },
-      { word: "社会の仕組み", kana: "しゃかいのしくみ", patterns: ["SYAKAINOSIKUMI", "SHAKAINOSHIKUMI", "SYAKAINOSHIKUMI", "SHAKAINOSIKUMI"] },
-      { word: "未来への「投資」！", kana: "みらいへの「とうし」！", patterns: ["MIRAIHENO[TOUSI]!", "MIRAIHENO[TOUSHI]!"] }
-  ]},
-  { genreIdx: 2, genreName: "自然と生き物", pts: 10, items: [
-      { word: "メダカ", kana: "めだか", patterns: ["MEDAKA"] },
-      { word: "スズメ", kana: "すずめ", patterns: ["SUZUME"] },
-      { word: "テントウムシ", kana: "てんとうむし", patterns: ["TENTOUMUSI", "TENTOUMUSHI"] },
-      { word: "地球", kana: "ちきゅう", patterns: ["TIKYUU", "CHIKYUU"] },
-      { word: "太陽系", kana: "たいようけい", patterns: ["TAIYOUKEI"] }
-  ]},
-  { genreIdx: 2, genreName: "自然と生き物", pts: 30, items: [
-      { word: "カピバラ", kana: "かぴばら", patterns: ["KAPIBARA"] },
-      { word: "ダイオウグソクムシ", kana: "だいおうぐそくむし", patterns: ["DAIOUGUSOKUMUSI", "DAIOUGUSOKUMUSHI"] },
-      { word: "シーラカンス", kana: "しーらかんす", patterns: ["SI-RAKANSU", "SHI-RAKANSU"] },
-      { word: "超伝導", kana: "ちょうでんどう", patterns: ["TYOUDENDOU", "CHOUDENDOU"] },
-      { word: "シジュウカラ", kana: "しじゅうから", patterns: ["SIZYUUKARA", "SHIJUUKARA", "SIJIUUKARA", "SHIJIUUKARA"] }
-  ]},
-  { genreIdx: 2, genreName: "自然と生き物", pts: 50, items: [
-      { word: "命のつながり", kana: "いのちのつながり", patterns: ["INOTINOTSUNAGARI", "INOCHINOTSUNAGARI", "INOTINOTUNAGARI", "INOCHINOTUNAGARI"] },
-      { word: "ヒガシニホンアマガエル", kana: "ひがしにほんあまがえる", patterns: ["HIGASINIHONAMAGAERU", "HIGASHINIHONAMAGAERU", "HIGASINIHONNAMAGAERU", "HIGASHINIHONNAMAGAERU"] },
-      { word: "自然の「めぐみ」", kana: "しぜんの「めぐみ」", patterns: ["SIZENNO[MEGUMI]", "SHIZENNO[MEGUMI]"] },
-      { word: "「生態系」を守れるか？", kana: "「せいたいけい」をまもれるか？", patterns: ["[SEITAIKEI]WOMAMORERUKA?"] },
-      { word: "ばくはつ！好奇心", kana: "ばくはつ！こうきしん", patterns: ["BAKUHATSU!KOUKISIN", "BAKUHATSU!KOUKISHIN", "BAKUHATU!KOUKISIN", "BAKUHATU!KOUKISHIN"] }
-  ]}
-];
-  
 const GOJUON_MATRIX = [
   ["あ","か","さ","た","な","は","ま","や","ら","わ"],
   ["い","き","し","ち","に","ひ","み","","り",""],
@@ -1319,7 +1259,7 @@ function startBasicStep(stepIdx) {
   if (stepIdx > 0 && userProgress.basicClears[stepIdx - 1] === 0) return;
   
   currentBasicStep = stepIdx;
-  basicWordList = BASIC_STEPS_DATA[currentBasicStep];
+  basicWordList = BASIC_STEPS_DATA[currentBasicStep] || [];
   currentBasicWordIdx = 0;
 
   renderBasicStepBar();
@@ -1330,7 +1270,8 @@ function renderBasicStepBar() {
   const bar = document.getElementById('basicStepBar');
   bar.innerHTML = '';
 
-  for (let i = 0; i < 10; i++) {
+  const stepCount = BASIC_STEPS_DATA.length || 10;
+  for (let i = 0; i < stepCount; i++) {
     const isUnlocked = (i === 0) || (userProgress.basicClears[i - 1] > 0);
     const isCleared = userProgress.basicClears[i] > 0;
     const isActive = (i === currentBasicStep);
@@ -1349,14 +1290,15 @@ function renderBasicStepBar() {
     bar.appendChild(btn);
   }
 
-  document.getElementById('basicProgressText').innerText = `Step ${currentBasicStep + 1} (${currentBasicWordIdx + 1} / 5問)`;
+  const totalWords = basicWordList.length || 5;
+  document.getElementById('basicProgressText').innerText = `Step ${currentBasicStep + 1} (${currentBasicWordIdx + 1} / ${totalWords}問)`;
 }
 
 function loadBasicQuestion() {
   clearTimeout(kanaTimer);
   clearTimeout(romajiTimer);
 
-  currentWord = basicWordList[currentBasicWordIdx];
+  currentWord = basicWordList[currentBasicWordIdx] || { word: "---", kana: "---", patterns: ["---"] };
   currentTypedString = "";
   activeRomajiPattern = currentWord.patterns[0];
   currentState = { kanaVisible: false, romajiVisible: false };
@@ -1386,8 +1328,8 @@ function loadBasicQuestion() {
    ========================================================= */
 function selectAppliedPanel(panelIdx) {
   currentAppliedPanelIdx = panelIdx;
-  const panelData = APPLIED_PANELS[currentAppliedPanelIdx];
-  appliedWordList = panelData.items;
+  const panelData = APPLIED_PANELS[currentAppliedPanelIdx] || { genreName: "---", pts: 0, items: [] };
+  appliedWordList = panelData.items || [];
   currentAppliedWordIdx = 0;
 
   renderQuizMatrix();
@@ -1398,8 +1340,8 @@ function loadAppliedQuestion() {
   clearTimeout(kanaTimer);
   clearTimeout(romajiTimer);
 
-  const panelData = APPLIED_PANELS[currentAppliedPanelIdx];
-  currentWord = appliedWordList[currentAppliedWordIdx];
+  const panelData = APPLIED_PANELS[currentAppliedPanelIdx] || { genreName: "---", pts: 0 };
+  currentWord = appliedWordList[currentAppliedWordIdx] || { word: "---", kana: "---", patterns: ["---"] };
   currentTypedString = "";
   activeRomajiPattern = currentWord.patterns[0];
   currentState = { kanaVisible: false, romajiVisible: false };
@@ -1411,7 +1353,8 @@ function loadAppliedQuestion() {
   kanaEl.innerText = currentWord.kana;
   kanaEl.className = 'kana-display fade-hidden';
 
-  document.getElementById('appliedProgressText').innerText = `${currentAppliedWordIdx + 1} / 5 問目`;
+  const totalWords = appliedWordList.length || 5;
+  document.getElementById('appliedProgressText').innerText = `${currentAppliedWordIdx + 1} / ${totalWords} 問目`;
   document.getElementById('appliedSubText').innerText = `正解打鍵で ${panelData.pts} pt GET!`;
 
   updateRomajiDisplay('appliedRomajiDisplay');
@@ -1551,14 +1494,14 @@ function onWordCleared() {
     renderGojuonGrid();
     currentBasicWordIdx++;
 
-    if (currentBasicWordIdx >= 5) {
+    const totalWords = basicWordList.length || 5;
+    if (currentBasicWordIdx >= totalWords) {
       playAudioSE('panelClear');
       userProgress.basicClears[currentBasicStep] = 1;
       saveProgress();
 
       setTimeout(() => {
-        // ★修正：第10ステップ（idx: 9）をクリアした場合はステージ完了演出へ！
-        if (currentBasicStep < 9) {
+        if (currentBasicStep < (BASIC_STEPS_DATA.length - 1)) {
           startBasicStep(currentBasicStep + 1);
         } else {
           playAudioSE('allClear');
@@ -1572,7 +1515,8 @@ function onWordCleared() {
     playAudioSE('wordClear');
     currentAppliedWordIdx++;
 
-    if (currentAppliedWordIdx >= 5) {
+    const totalWords = appliedWordList.length || 5;
+    if (currentAppliedWordIdx >= totalWords) {
       playAudioSE('panelClear');
       userProgress.appliedClears[currentAppliedPanelIdx] = true;
       
