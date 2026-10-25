@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>タイピング練習 語群作成・編集ツール (Word Builder)</title>
+  <style>
+    :root {
+      --primary-color: #3b82f6;
+      --primary-hover: #2563eb;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-sub: #64748b;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ヘッダー */
+    header {
+      background: #1e293b;
+      color: #fff;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* ボタン共通 */
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary { background: var(--primary-color); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-success { background: var(--success-color); color: white; }
+    .btn-success:hover { background: #059669; }
+    .btn-secondary { background: #e2e8f0; color: #334155; }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-danger { background: #fee2e2; color: var(--danger-color); }
+    .btn-danger:hover { background: #fca5a5; }
+    .btn-sm { padding: 4px 8px; font-size: 0.8rem; }
+
+    /* モード切替タブ */
+    .mode-nav {
+      display: flex;
+      background: #0f172a;
+      padding: 0 20px;
+      gap: 4px;
+    }
+
+    .nav-tab {
+      padding: 10px 20px;
+      background: #334155;
+      color: #94a3b8;
+      border: none;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+
+    .nav-tab.active {
+      background: var(--bg-color);
+      color: var(--primary-color);
+    }
+
+    /* メインコンテナ（2カラム） */
+    .main-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      padding: 16px;
+      gap: 16px;
+    }
+
+    /* 左カラム：ステップ選択・プロンプト・インポート */
+    .left-panel {
+      width: 380px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    /* 右カラム：取捨選択・編集リスト */
+    .right-panel {
+      flex: 1;
+      background: var(--card-bg);
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+
+    .panel-card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      padding: 14px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .panel-title {
+      font-weight: bold;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ステップグリッドボタン */
+    .step-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    .step-btn {
+      padding: 8px 4px;
+      border: 1px solid var(--border-color);
+      background: #f1f5f9;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+
+    .step-btn:hover { background: #e2e8f0; }
+    .step-btn.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+    .step-btn.has-data::after {
+      content: ' ●';
+      color: var(--success-color);
+    }
+    .step-btn.active.has-data::after {
+      color: #a7f3d0;
+    }
+
+    /* テキストエリア */
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      resize: vertical;
+    }
+
+    /* 右カラム：ヘッダー・フッター */
+    .right-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-color);
+      background: #fafafa;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .rule-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      color: #1e40af;
+      margin-top: 6px;
+    }
+
+    .word-list-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* 単語カード */
+    .word-card {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #fff;
+      transition: all 0.2s;
+    }
+
+    .word-card.selected {
+      border-color: var(--primary-color);
+      background: #f0f6ff;
+    }
+
+    .word-card.has-warning {
+      border-color: var(--warning-color);
+      background: #fffbeb;
+    }
+
+    .word-checkbox {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .word-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .word-main-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .word-kanji { font-size: 1.2rem; font-weight: bold; }
+    .word-kana { font-size: 0.95rem; color: var(--text-sub); }
+    .word-patterns {
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #0369a1;
+      background: #e0f2fe;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-top: 4px;
+      word-break: break-all;
+    }
+
+    .warning-badge {
+      font-size: 0.75rem;
+      color: #b45309;
+      background: #fef3c7;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    .word-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .right-footer {
+      padding: 10px 18px;
+      border-top: 1px solid var(--border-color);
+      background: #fafafa;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* 編集モーダル */
+    .modal-overlay {
+      position: fixed;
+      top:0; left:0; width:100vw; height:100vh;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      width: 440px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: var(--text-sub);
+    }
+
+    .form-group input {
+      padding: 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🛠️ タイピング練習 語群作成・編集ツール <span>(Word Builder)</span></h1>
+  <div class="header-actions">
+    <button class="btn btn-secondary" onclick="saveToLocalStorage()">💾 作業保存</button>
+    <button class="btn btn-success" onclick="exportWordsJS()">🚀 words.js をダウンロード</button>
+  </div>
+</header>
+
+<div class="mode-nav">
+  <button class="nav-tab active" id="tabBasic" onclick="switchMode('basic')">🚀 基礎モード (10 Step)</button>
+  <button class="nav-tab" id="tabApplied" onclick="switchMode('applied')">🏆 クイズグランプリ (9 Panel)</button>
+</div>
+
+<div class="main-container">
+  <!-- 左カラム：コントロール＆インポート -->
+  <div class="left-panel">
+    
+    <div class="panel-card">
+      <div class="panel-title" id="selectorTitle">📍 ステップを選択</div>
+      <div class="step-grid" id="stepGrid"></div>
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-title">🤖 1. 生成AI用プロンプト</div>
+      <p style="font-size:0.8rem; color:var(--text-sub); margin:0 0 8px 0;">以下のボタンを押してプロンプトをコピーし、Gemini等のAIに送信してください。</p>
+      <button class="btn btn-primary btn-sm" style="width:100%;" onclick="copyAIPrompt()">📋 プロンプトをコピー</button>
+    </div>
+
+    <div class="panel-card" style="flex:1; display:flex; flex-direction:column;">
+      <div class="panel-title">📥 2. AIからの出力を貼り付け</div>
+      <p style="font-size:0.8rem; color:var(--text-sub); margin:0 0 8px 0;">AIが出力した「漢字,読み」またはJSONテキストを貼り付けて取り込みます。</p>
+      <textarea id="importInput" placeholder="例：&#10;青い,あおい&#10;家,いえ&#10;追う,おう"></textarea>
+      <button class="btn btn-primary btn-sm" style="margin-top:8px; width:100%;" onclick="importText()">📥 候補語群として取り込む</button>
+    </div>
+
+  </div>
+
+  <!-- 右カラム：取捨選択・編集 -->
+  <div class="right-panel">
+    <div class="right-header">
+      <div>
+        <div style="font-size:1.1rem; font-weight:bold;" id="targetTitle">Step 1: 母音のみ</div>
+        <div class="rule-box" id="targetRule">💡 学習ルール: あ・い・う・え・お のみを使用した単語</div>
+      </div>
+      <div style="text-align:right;">
+        <span style="font-size:0.85rem; color:var(--text-sub);">採用数:</span>
+        <strong style="font-size:1.3rem; margin-left:4px;" id="selectedCount">0 / 5 語</strong>
+      </div>
+    </div>
+
+    <div class="word-list-container" id="wordListContainer">
+      <!-- 単語カードが動的生成されます -->
+    </div>
+
+    <div class="right-footer">
+      <button class="btn btn-secondary btn-sm" onclick="openEditModal(-1)">＋ 手動で単語を追加</button>
+      <button class="btn btn-danger btn-sm" onclick="clearCurrentCandidates()">現在の候補を全削除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 単語編集モーダル -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-card">
+    <h3 style="margin:0;" id="modalTitle">単語の編集</h3>
+    <div class="form-group">
+      <label>漢字・表示語句</label>
+      <input type="text" id="modalKanji" placeholder="例：青い">
+    </div>
+    <div class="form-group">
+      <label>読み（ひらがな）</label>
+      <input type="text" id="modalKana" placeholder="例：あおい" oninput="autoGenerateModalRomaji()">
+    </div>
+    <div class="form-group">
+      <label>ローマ字パターン (カンマ区切りで複数可)</label>
+      <input type="text" id="modalRomaji" placeholder="例：AOI">
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+      <button class="btn btn-secondary btn-sm" onclick="closeEditModal()">キャンセル</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEditModal()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   1. ガイドライン＆基本構造定義
+   ========================================================= */
+const BASIC_RULES = [
+  { step: 1, name: "Step 1: 母音のみ", rule: "「あ・い・う・え・お」のみを使用", allowedRegex: /^[あ-お]+$/ },
+  { step: 2, name: "Step 2: か行まで", rule: "「あ〜お」「か〜こ」を使用", allowedRegex: /^[あ-ご]+$/ },
+  { step: 3, name: "Step 3: さ行まで", rule: "「あ〜お」「か〜こ」「さ〜そ」を使用", allowedRegex: /^[あ-ぞ]+$/ },
+  { step: 4, name: "Step 4: た行まで", rule: "「あ〜お」「か〜こ」「さ〜そ」「た〜と」を使用", allowedRegex: /^[あ-ど]+$/ },
+  { step: 5, name: "Step 5: な行まで", rule: "「あ〜お」「か〜こ」「さ〜そ」「た〜と」「な〜の」を使用", allowedRegex: /^[あ-の]+$/ },
+  { step: 6, name: "Step 6: は行まで", rule: "清音・濁音・半濁音（は・ひ・ふ・へ・ほ / ば・ぱ等）を含む", allowedRegex: /^[あ-ぽ]+$/ },
+  { step: 7, name: "Step 7: ま行まで", rule: "ま行（ま・み・む・め・も）を含む", allowedRegex: /^[あ-も]+$/ },
+  { step: 8, name: "Step 8: や・ら行まで", rule: "や行・ら行を含む", allowedRegex: /^[あ-ろ]+$/ },
+  { step: 9, name: "Step 9: わ行・特殊音", rule: "わ・を・ん・撥音等を含む", allowedRegex: /^[あ-んー]+$/ },
+  { step: 10, name: "Step 10: 総合復習", rule: "全ひらがな・促音・拗音を含む総合問題", allowedRegex: /^[ぁ-んー！？」]+$/ }
+];
+
+const APPLIED_PANELS_DEF = [
+  { idx: 0, genreName: "体と健康", pts: 10 }, { idx: 1, genreName: "体と健康", pts: 30 }, { idx: 2, genreName: "体と健康", pts: 50 },
+  { idx: 3, genreName: "社会とお金", pts: 10 }, { idx: 4, genreName: "社会とお金", pts: 30 }, { idx: 5, genreName: "社会とお金", pts: 50 },
+  { idx: 6, genreName: "自然と生き物", pts: 10 }, { idx: 7, genreName: "自然と生き物", pts: 30 }, { idx: 8, genreName: "自然と生き物", pts: 50 }
+];
+
+/* ローマ字全自動変換テーブル */
+const ROMAJI_MAP = {
+  'あ':'A','い':'I','う':'U','え':'E','お':'O',
+  'か':'KA','き':'KI','く':'KU','け':'KE','こ':'KO',
+  'さ':'SA','し':['SI','SHI'],'す':'SU','せ':'SE','そ':'SO',
+  'た':'TA','ち':['TI','CHI'],'つ':['TU','TSU'],'て':'TE','と':'TO',
+  'な':'NA','に':'NI','ぬ':'NU','ね':'NE','の':'NO',
+  'は':'HA','ひ':'HI','ふ':['HU','FU'],'へ':'HE','ほ':'HO',
+  'ま':'MA','み':'MI','む':'MU','め':'ME','も':'MO',
+  'や':'YA','ゆ':'YU','よ':'YO',
+  'ら':'RA','り':'RI','る':'RU','れ':'RE','ろ':'RO',
+  'わ':'WA','を':'WO','ん':['N','NN'],
+  'が':'GA','ぎ':'GI','ぐ':'GU','げ':'GE','ご':'GO',
+  'ざ':'ZA','じ':['ZI','JI'],'ず':'ZU','ぜ':'ZE','ぞ':'ZO',
+  'だ':'DA','ぢ':['DI','ZI'],'づ':['DU','ZU'],'で':'DE','ど':'DO',
+  'ば':'BA','び':'BI','ぶ':'BU','べ':'BE','ぼ':'BO',
+  'ぱ':'PA','ぴ':'PI','ぷ':'PU','ぺ':'PE','ぽ':'PO',
+  'きゃ':['KYA'],'きゅ':['KYU'],'きょ':['KYO'],
+  'しゃ':['SYA','SHA'],'しゅ':['SYU','SHU'],'しょ':['SYO','SHO'],
+  'ちゃ':['TYA','CHA','CYA'],'ちゅ':['TYU','CHU','CYU'],'ちょ':['TYO','CHO','CYO'],
+  'にゃ':['NYA'],'にゅ':['NYU'],'にょ':['NYO'],
+  'ひゃ':['HYA'],'ひゅ':['HYU'],'ひょ':['HYO'],
+  'みゃ':['MYA'],'みゅ':['MYU'],'みょ':['MYO'],
+  'りゃ':['RYA'],'りゅ':['RYU'],'りょ':['RYO'],
+  'ぎゃ':['GYA'],'ぎゅ':['GYU'],'ぎょ':['GYO'],
+  'じゃ':['ZYA','JYA','JA'],'じゅ':['ZYU','JYU','JU'],'じょ':['ZYO','JYO','JO'],
+  'びゃ':['BYA'],'びゅ':['BYU'],'びょ':['BYO'],
+  'ぴゃ':['PYA'],'ぴゅ':['PYU'],'ぴょ':['PYO'],
+  'ー':'-','！':'!','？':'?','「':'[','」':']'
+};
+
+/* 状態管理 */
+let currentMode = 'basic';
+let currentStepIdx = 0;
+let editTargetIdx = -1;
+
+let dataset = {
+  basic: Array.from({length: 10}, () => []),
+  applied: Array.from({length: 9}, () => [])
+};
+
+/* =========================================================
+   2. ローマ字自動変換エンジン
+   ========================================================= */
+function generateRomajiPatterns(kanaStr) {
+  let results = [""];
+  let i = 0;
+
+  while (i < kanaStr.length) {
+    let match = null;
+    let matchLen = 0;
+
+    // 拗音（2文字判定）
+    if (i + 1 < kanaStr.length) {
+      const pair = kanaStr.substr(i, 2);
+      if (ROMAJI_MAP[pair]) {
+        match = ROMAJI_MAP[pair];
+        matchLen = 2;
+      }
+    }
+
+    // 促音（っ）判定
+    if (!match && kanaStr[i] === 'っ' && i + 1 < kanaStr.length) {
+      const nextChar = kanaStr[i + 1];
+      const nextRomaji = ROMAJI_MAP[nextChar];
+      if (nextRomaji) {
+        const firstLetter = (Array.isArray(nextRomaji) ? nextRomaji[0] : nextRomaji)[0];
+        const newResults = [];
+        results.forEach(r => newResults.push(r + firstLetter));
+        results = newResults;
+        i++;
+        continue;
+      }
+    }
+
+    // 単文字判定
+    if (!match) {
+      match = ROMAJI_MAP[kanaStr[i]];
+      matchLen = 1;
+    }
+
+    if (match) {
+      const options = Array.isArray(match) ? match : [match];
+      const newResults = [];
+      results.forEach(r => {
+        options.forEach(opt => newResults.push(r + opt));
+      });
+      results = newResults;
+      i += matchLen;
+    } else {
+      // 未定義文字はそのまま追加
+      const char = kanaStr[i].toUpperCase();
+      results = results.map(r => r + char);
+      i++;
+    }
+  }
+
+  // 重複除去
+  return Array.from(new Set(results));
+}
+
+/* =========================================================
+   3. 初期化 ＆ モード／ステップ制御
+   ========================================================= */
+function init() {
+  loadFromLocalStorage();
+  renderStepGrid();
+  loadStepData();
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  currentStepIdx = 0;
+
+  document.getElementById('tabBasic').classList.toggle('active', mode === 'basic');
+  document.getElementById('tabApplied').classList.toggle('active', mode === 'applied');
+
+  renderStepGrid();
+  loadStepData();
+}
+
+function selectStep(idx) {
+  currentStepIdx = idx;
+  renderStepGrid();
+  loadStepData();
+}
+
+function renderStepGrid() {
+  const grid = document.getElementById('stepGrid');
+  grid.innerHTML = '';
+
+  const count = (currentMode === 'basic') ? 10 : 9;
+  for (let i = 0; i < count; i++) {
+    const btn = document.createElement('div');
+    const hasItems = dataset[currentMode][i] && dataset[currentMode][i].length > 0;
+    
+    btn.className = `step-btn ${i === currentStepIdx ? 'active' : ''} ${hasItems ? 'has-data' : ''}`;
+    btn.innerText = (currentMode === 'basic') ? `Step ${i + 1}` : `P ${i + 1}`;
+    btn.onclick = () => selectStep(i);
+    grid.appendChild(btn);
+  }
+
+  document.getElementById('selectorTitle').innerText = (currentMode === 'basic') ? '📍 基礎ステップ選択' : '📍 クイズパネル選択';
+}
+
+function loadStepData() {
+  const targetTitle = document.getElementById('targetTitle');
+  const targetRule = document.getElementById('targetRule');
+
+  if (currentMode === 'basic') {
+    const info = BASIC_RULES[currentStepIdx];
+    targetTitle.innerText = info.name;
+    targetRule.innerText = `💡 学習ルール: ${info.rule}`;
+  } else {
+    const info = APPLIED_PANELS_DEF[currentStepIdx];
+    targetTitle.innerText = `Panel ${currentStepIdx + 1}: 【${info.genreName}】 ${info.pts} pt`;
+    targetRule.innerText = `💡 応用ルール: 「${info.genreName}」に関する学問・探究語句を出題`;
+  }
+
+  renderWordList();
+}
+
+/* =========================================================
+   4. リスト描画 ＆ 取捨選択
+   ========================================================= */
+function renderWordList() {
+  const container = document.getElementById('wordListContainer');
+  container.innerHTML = '';
+
+  const items = dataset[currentMode][currentStepIdx] || [];
+  let selectedCount = 0;
+
+  items.forEach((item, idx) => {
+    if (item.selected) selectedCount++;
+
+    const card = document.createElement('div');
+    let warningMsg = null;
+
+    if (currentMode === 'basic') {
+      const rule = BASIC_RULES[currentStepIdx];
+      if (rule.allowedRegex && !rule.allowedRegex.test(item.kana)) {
+        warningMsg = "ステップの文字制限範囲外の文字が含まれています";
+      }
+    }
+
+    card.className = `word-card ${item.selected ? 'selected' : ''} ${warningMsg ? 'has-warning' : ''}`;
+    
+    card.innerHTML = `
+      <input type="checkbox" class="word-checkbox" ${item.selected ? 'checked' : ''} onchange="toggleSelect(${idx})">
+      <div class="word-info">
+        <div class="word-main-row">
+          <span class="word-kanji">${item.word}</span>
+          <span class="word-kana">(${item.kana})</span>
+          ${warningMsg ? `<span class="warning-badge">⚠️ ${warningMsg}</span>` : ''}
+        </div>
+        <div><span class="word-patterns">${item.patterns.join(' / ')}</span></div>
+      </div>
+      <div class="word-actions">
+        <button class="btn btn-secondary btn-sm" onclick="moveItem(${idx}, -1)">▲</button>
+        <button class="btn btn-secondary btn-sm" onclick="moveItem(${idx}, 1)">▼</button>
+        <button class="btn btn-secondary btn-sm" onclick="openEditModal(${idx})">編集</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem(${idx})">削除</button>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+
+  const countEl = document.getElementById('selectedCount');
+  countEl.innerText = `${selectedCount} / 5 語`;
+  countEl.style.color = (selectedCount === 5) ? 'var(--success-color)' : (selectedCount > 5 ? 'var(--danger-color)' : 'var(--text-main)');
+}
+
+function toggleSelect(idx) {
+  const item = dataset[currentMode][currentStepIdx][idx];
+  item.selected = !item.selected;
+  renderWordList();
+  autoSave();
+}
+
+function moveItem(idx, dir) {
+  const list = dataset[currentMode][currentStepIdx];
+  const targetIdx = idx + dir;
+  if (targetIdx < 0 || targetIdx >= list.length) return;
+
+  const temp = list[idx];
+  list[idx] = list[targetIdx];
+  list[targetIdx] = temp;
+
+  renderWordList();
+  autoSave();
+}
+
+function deleteItem(idx) {
+  dataset[currentMode][currentStepIdx].splice(idx, 1);
+  renderWordList();
+  renderStepGrid();
+  autoSave();
+}
+
+function clearCurrentCandidates() {
+  if (confirm("現在のステップの全候補語群を削除しますか？")) {
+    dataset[currentMode][currentStepIdx] = [];
+    renderWordList();
+    renderStepGrid();
+    autoSave();
+  }
+}
+
+/* =========================================================
+   5. インポート ＆ AIプロンプト生成
+   ========================================================= */
+function copyAIPrompt() {
+  let promptText = "";
+
+  if (currentMode === 'basic') {
+    const info = BASIC_RULES[currentStepIdx];
+    promptText = `【指示】小学生向けタイピング練習用の単語候補を作成してください。
+ステップ: ${info.name}
+条件: ${info.rule}
+語数: 条件に適合する単語を 10 個出力してください。
+形式: 1行につき「漢字表示,読み」の形式のみ（余計な解説は不要）。
+
+例:
+青い,あおい
+家,いえ
+追う,おう`;
+  } else {
+    const info = APPLIED_PANELS_DEF[currentStepIdx];
+    promptText = `【指示】小・中学生の探究心を刺激するタイピングクイズ用の単語候補を作成してください。
+ジャンル: ${info.genreName} (${info.pts}pt相当の難易度)
+語数: 好奇心をくすぐる学問・科学用語を 10 個出力してください。
+形式: 1行につき「漢字表示,読み」の形式のみ（余計な解説は不要）。
+
+例:
+筋肉,きんにく
+心臓,しんぞう
+靭帯,じんたい`;
+  }
+
+  navigator.clipboard.writeText(promptText).then(() => {
+    alert("プロンプトをクリップボードにコピーしました！AIに貼り付けて実行してください。");
+  });
+}
+
+function importText() {
+  const text = document.getElementById('importInput').value.trim();
+  if (!text) return;
+
+  const newItems = [];
+
+  // JSON形式かチェック
+  if (text.startsWith('[') || text.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(text);
+      const list = Array.isArray(parsed) ? parsed : [parsed];
+      list.forEach(item => {
+        if (item.word && item.kana) {
+          const patterns = item.patterns || generateRomajiPatterns(item.kana);
+          newItems.push({ word: item.word, kana: item.kana, patterns: patterns, selected: true });
+        }
+      });
+    } catch(e) {}
+  }
+
+  // テキスト・CSV・TSV形式処理
+  if (newItems.length === 0) {
+    const lines = text.split('\n');
+    lines.forEach(line => {
+      const cleaned = line.replace(/^\d+[\.\)]\s*/, '').trim(); // 行頭番号除去
+      if (!cleaned) return;
+
+      const parts = cleaned.includes(',') ? cleaned.split(',') : cleaned.split('\t');
+      if (parts.length >= 2) {
+        const word = parts[0].trim();
+        const kana = parts[1].trim();
+        const patterns = generateRomajiPatterns(kana);
+        newItems.push({ word: word, kana: kana, patterns: patterns, selected: true });
+      }
+    });
+  }
+
+  if (newItems.length > 0) {
+    dataset[currentMode][currentStepIdx] = [...dataset[currentMode][currentStepIdx], ...newItems];
+    document.getElementById('importInput').value = '';
+    renderWordList();
+    renderStepGrid();
+    autoSave();
+    alert(`${newItems.length} 件の単語候補を取り込みました！`);
+  } else {
+    alert("有効な「漢字,読み」のテキストが見つかりませんでした。フォーマットを確認してください。");
+  }
+}
+
+/* =========================================================
+   6. 編集モーダル
+   ========================================================= */
+function openEditModal(idx) {
+  editTargetIdx = idx;
+  const modal = document.getElementById('editModal');
+  
+  if (idx >= 0) {
+    const item = dataset[currentMode][currentStepIdx][idx];
+    document.getElementById('modalTitle').innerText = "単語の編集";
+    document.getElementById('modalKanji').value = item.word;
+    document.getElementById('modalKana').value = item.kana;
+    document.getElementById('modalRomaji').value = item.patterns.join(', ');
+  } else {
+    document.getElementById('modalTitle').innerText = "単語の手動追加";
+    document.getElementById('modalKanji').value = '';
+    document.getElementById('modalKana').value = '';
+    document.getElementById('modalRomaji').value = '';
+  }
+
+  modal.style.display = 'flex';
+}
+
+function autoGenerateModalRomaji() {
+  const kana = document.getElementById('modalKana').value.trim();
+  if (kana) {
+    const patterns = generateRomajiPatterns(kana);
+    document.getElementById('modalRomaji').value = patterns.join(', ');
+  }
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').style.display = 'none';
+}
+
+function saveEditModal() {
+  const word = document.getElementById('modalKanji').value.trim();
+  const kana = document.getElementById('modalKana').value.trim();
+  const romajiRaw = document.getElementById('modalRomaji').value.trim();
+
+  if (!word || !kana) {
+    alert("表示語句と読みの両方を入力してください。");
+    return;
+  }
+
+  const patterns = romajiRaw ? romajiRaw.split(',').map(s => s.trim().toUpperCase()) : generateRomajiPatterns(kana);
+
+  const itemData = { word, kana, patterns, selected: true };
+
+  if (editTargetIdx >= 0) {
+    dataset[currentMode][currentStepIdx][editTargetIdx] = itemData;
+  } else {
+    dataset[currentMode][currentStepIdx].push(itemData);
+  }
+
+  closeEditModal();
+  renderWordList();
+  renderStepGrid();
+  autoSave();
+}
+
+/* =========================================================
+   7. 保存 ＆ words.js エクスポート
+   ========================================================= */
+function autoSave() {
+  saveToLocalStorage();
+}
+
+function saveToLocalStorage() {
+  try {
+    localStorage.setItem('typing_builder_dataset', JSON.stringify(dataset));
+  } catch(e) {}
+}
+
+function loadFromLocalStorage() {
+  try {
+    const saved = localStorage.getItem('typing_builder_dataset');
+    if (saved) dataset = JSON.parse(saved);
+  } catch(e) {}
+}
+
+function exportWordsJS() {
+  // 基礎データの構築 (選択された語句のみ抽出、足りない場合は全選択)
+  const basicOutput = dataset.basic.map((stepItems, stepIdx) => {
+    let selected = stepItems.filter(i => i.selected);
+    if (selected.length === 0) selected = stepItems; // 未選択時は全件
+    return selected.map(i => ({ word: i.word, kana: i.kana, patterns: i.patterns }));
+  });
+
+  // 応用データの構築
+  const appliedOutput = dataset.applied.map((panelItems, panelIdx) => {
+    const def = APPLIED_PANELS_DEF[panelIdx];
+    let selected = panelItems.filter(i => i.selected);
+    if (selected.length === 0) selected = panelItems;
+
+    return {
+      genreIdx: Math.floor(panelIdx / 3),
+      genreName: def.genreName,
+      pts: def.pts,
+      items: selected.map(i => ({ word: i.word, kana: i.kana, patterns: i.patterns }))
+    };
+  });
+
+  const jsContent = `// words.js - タイピング練習アプリ用出題データ (自動生成)
+
+const BASIC_STEPS_DATA = ${JSON.stringify(basicOutput, null, 2)};
+
+const APPLIED_PANELS = ${JSON.stringify(appliedOutput, null, 2)};
+`;
+
+  const blob = new Blob([jsContent], { type: 'text/javascript' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'words.js';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
