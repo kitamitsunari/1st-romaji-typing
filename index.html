@@ -427,7 +427,7 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.05);
       border: 1px solid var(--card-border);
       display: flex;
-      flex-direction: row; /* 横並び配置 */
+      flex-direction: row;
       justify-content: space-between;
       align-items: center;
       gap: 12px;
@@ -694,7 +694,8 @@
 const CONFIG = {
   KANA_HINT_DELAY: 1200,   
   ROMAJI_HINT_DELAY: 5000, 
-  GOLD_THRESHOLD: 2
+  GOLD_THRESHOLD: 2,
+  MISS_COOLDOWN_MS: 800  /* ★連打抑制用クールダウン時間(0.8秒) */
 };
 
 const WARMUP_STEPS = [
@@ -706,8 +707,7 @@ const WARMUP_STEPS = [
 ];
 
 /* 
- * 注意: BASIC_STEPS_DATA および APPLIED_PANELS は words.js から読み込みます。
- * 万が一 words.js が読み込まれていない場合のフォールバック定義
+ * words.js が読み込まれていない場合のフォールバック定義
  */
 if (typeof BASIC_STEPS_DATA === 'undefined') {
   window.BASIC_STEPS_DATA = [
@@ -755,6 +755,8 @@ let currentWord = {};
 let currentState = { kanaVisible: false, romajiVisible: false };
 let kanaTimer = null;
 let romajiTimer = null;
+
+let lastMissTime = 0; /* ★直前のミスタッチ発生時刻 */
 
 let userProgress = { 
   gojuon: {}, 
@@ -890,7 +892,6 @@ function resizeCanvas() {
   canvas.height = window.innerHeight;
 }
 
-/* 50音マップから指定ひらがなDOMを取得するヘルパー */
 function getGojuonCellElByChar(targetKana) {
   const cells = document.querySelectorAll('.grid-cell');
   for (let cell of cells) {
@@ -960,7 +961,6 @@ function updateParticles() {
     if (p.isSuccess) {
       p.progress += p.speed;
       if (p.progress >= 1) {
-        // 到達時：該当50音パネルを「ピカッ」とパルス発光
         if (p.targetCellEl) {
           p.targetCellEl.classList.add('pulse');
           setTimeout(() => p.targetCellEl.classList.remove('pulse'), 300);
@@ -1407,7 +1407,13 @@ function handleKeyDown(e) {
 }
 
 function handleCharInput(key) {
+  // キーの沈み込み視覚フィードバック
   highlightKey(key);
+
+  /* ★【課題1修正】Shift キー単独入力時は判定・サウンド・演出をすべてバイパス */
+  if (key === 'SHIFT') {
+    return;
+  }
 
   const keyEl = document.getElementById(`key-${key}`);
   const rect = keyEl ? keyEl.getBoundingClientRect() : { left: window.innerWidth / 2, top: window.innerHeight / 2, width: 0, height: 0 };
@@ -1432,7 +1438,13 @@ function handleCharInput(key) {
       if (warmupTypedCount >= 8) warmupClearedPending = true;
     } else {
       playAudioSE('incorrect');
-      spawnCoinParticle(startX, startY, null, false);
+      
+      /* ★【課題2修正】ミスタッチ連打抑制クールダウン (0.8秒) */
+      const now = Date.now();
+      if (now - lastMissTime > CONFIG.MISS_COOLDOWN_MS) {
+        spawnCoinParticle(startX, startY, null, false);
+        lastMissTime = now;
+      }
     }
   } else {
     const testString = currentTypedString + key;
@@ -1447,10 +1459,8 @@ function handleCharInput(key) {
       userProgress.totalTouches = (userProgress.totalTouches || 0) + 1;
       updateTouchCounterDisplay();
 
-      // 現在入力中（または対応する）ひらがなを抽出して終点ターゲットに設定
       let currentTargetKana = null;
       if (currentWord.kana) {
-        // おおよその文字進行位置からかな文字を特定
         const progressRatio = currentTypedString.length / activeRomajiPattern.length;
         const kanaIndex = Math.min(Math.floor(progressRatio * currentWord.kana.length), currentWord.kana.length - 1);
         currentTargetKana = currentWord.kana[kanaIndex];
@@ -1467,7 +1477,13 @@ function handleCharInput(key) {
     } else {
       // 不正解打鍵
       playAudioSE('incorrect');
-      spawnCoinParticle(startX, startY, null, false);
+
+      /* ★【課題2修正】ミスタッチ連打抑制クールダウン (0.8秒) */
+      const now = Date.now();
+      if (now - lastMissTime > CONFIG.MISS_COOLDOWN_MS) {
+        spawnCoinParticle(startX, startY, null, false);
+        lastMissTime = now;
+      }
     }
   }
 }
